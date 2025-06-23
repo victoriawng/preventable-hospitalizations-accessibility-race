@@ -1,5 +1,6 @@
 # importing data
 
+# https://www.countyhealthrankings.org/health-data/methodology-and-sources/data-documentation
 # install.packages("readxl")
 library(tidyverse)
 library(readxl)
@@ -10,3 +11,4 @@ data_dict_2025 = read_excel("data/DataDictionary_2025.xlsx")
 
 # put this code into your script wherever you want to call it
 # source("EDA_import.R")
+
