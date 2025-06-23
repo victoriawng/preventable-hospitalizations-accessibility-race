@@ -1,6 +1,6 @@
 # importing data
 
-install.packages("readxl")
+# install.packages("readxl")
 library(tidyverse)
 library(readxl)
 national_data <- read_csv("data/analytic_data2025_v2.csv")
