@@ -117,6 +117,17 @@ clean_national_subset <- clean_national_subset |>
   filter(`State FIPS Code` != 'statecode')
 
 
+library(stringr)
+
+
+
+non_county_names <- clean_national_subset |> 
+  filter(!str_detect(Name, "County")) |> 
+  select(Name)  
+
+  
+#Data set excluding US and States
 clean_national_subset_counties <- clean_national_subset |> 
-  filter()
+  filter(str_detect(Name, "County|Municipality|Census|Borough|Region|District|Parish|city"))
+
 
