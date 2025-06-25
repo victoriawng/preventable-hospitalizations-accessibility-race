@@ -158,7 +158,7 @@ for (i in 1:4) {
 
 #Scatter plot variable against preventable hospital stays
 clean_names_national_subset_counties |>
-  ggplot(aes(x = reading_scores_raw_value,
+  ggplot(aes(x = ratio_of_population_to_primary_care_physicians,
              y = preventable_hospital_stays_raw_value + 1)) + 
   geom_point(alpha = 0.3, size = 1) +
   scale_y_log10() +
@@ -166,7 +166,7 @@ clean_names_national_subset_counties |>
 
 #Correlation between two variables
 with(clean_names_national_subset_counties, 
-     cor(reading_scores_raw_value,
+     cor(ratio_of_population_to_primary_care_physicians,
          preventable_hospital_stays_raw_value))
 
 #Map Stuff
@@ -195,14 +195,34 @@ ggplot(map_data) +
   labs(title = "County-Level Map",
        fill = "My Variable")
 
+
+#US County Map
 ggplot(map_data) +
-  geom_sf(aes(fill = preventable_hospital_stays_raw_value), color = NA) +
+  geom_sf(aes(fill = ratio_of_population_to_primary_care_providers_other_than_physicians), color = NA) +
   coord_sf(xlim = c(-125, -66), ylim = c(24, 50)) +  # Approximate bounds of the lower 48
   scale_fill_viridis_c(option = "magma", na.value = "grey90") +
   theme_minimal()
 
 
+#Correlations
+with(clean_names_national_subset_counties,
+     cor(ratio_of_population_to_primary_care_providers_other_than_physicians,
+         preventable_hospital_stays_raw_value))
 
+library(dplyr)
+library(purrr)
 
+cor_with_outcome <- function(df, outcome_var) {
+  df %>%
+    select(where(is.numeric)) %>%
+    select(-all_of(outcome_var)) %>%
+    map_dbl(~ cor(.x, df[[outcome_var]], use = "complete.obs")) %>%
+    sort(decreasing = TRUE)
+}
 
+# Run it on your dataset:
+cor_results <- cor_with_outcome(clean_names_national_subset_counties, "preventable_hospital_stays_raw_value")
+
+# View results
+head(cor_results)
 
