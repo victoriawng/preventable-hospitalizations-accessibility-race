@@ -1,5 +1,5 @@
 # understand healthcare access
-# preventable hospitalizations
+# preventable hospitalizations (in terms of medical services)
 
 source("EDA_import.R")
 
