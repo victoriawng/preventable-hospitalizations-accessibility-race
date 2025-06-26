@@ -8,6 +8,8 @@ library(janitor)
 library(VIM)
 library(stats)
 library(stringr)
+library(scales)
+library(leaflet)
 
 national_data <- read_csv("data/analytic_data2025_v2.csv")
 
@@ -181,8 +183,6 @@ options(tigris_use_cache = TRUE)
 # Get shapefile for all US counties
 counties_sf <- counties(cb = TRUE, year = 2023, class = "sf")
 
-library(dplyr)
-library(stringr)
 
 clean_names_national_subset_counties <- clean_names_national_subset_counties |> 
   mutate(
@@ -194,26 +194,52 @@ clean_names_national_subset_counties <- clean_names_national_subset_counties |>
 map_data <- counties_sf |> 
   left_join(clean_names_national_subset_counties, by = c("GEOID" = "fips"))
 
-ggplot(map_data) +
-  geom_sf(aes(fill = percent_hispanic_raw_value), color = NA) +
-  scale_fill_viridis(option = "magma", na.value = "grey90") +
-  theme_minimal() +
-  labs(title = "County-Level Map",
-       fill = "My Variable")
 
 
 #US County Map
 ggplot(map_data) +
-  geom_sf(aes(fill = ratio_of_population_to_mental_health_providers), color = NA) +
-  coord_sf(xlim = c(-125, -66), ylim = c(24, 50)) +  # Approximate bounds of the lower 48
+  geom_sf(aes(fill = preventable_hospital_stays_raw_value), color = NA) +
+  coord_sf(xlim = c(-125, -66), ylim = c(24, 50)) +  
   scale_fill_viridis_c(option = "magma", na.value = "grey90") +
   theme_minimal()
 
-ggplot(map_data) +
-  geom_sf(aes(fill = percent_non_hispanic_white_raw_value), color = NA) +
-  coord_sf(xlim = c(-125, -66), ylim = c(24, 50)) +  # Approximate bounds of the lower 48
-  scale_fill_viridis_c(option = "magma", na.value = "grey90") +
-  theme_minimal()
+#Interactive US County Map
+
+#Run first
+pal <- colorNumeric(
+  palette = "magma",
+  domain = map_data$broadband_access_raw_value,
+  na.color = "gray90"
+)
+
+#Leaflet map
+leaflet(map_data) |> 
+  addProviderTiles("CartoDB.Positron") |>  
+  addPolygons(
+    fillColor = ~pal(broadband_access_raw_value),
+    weight = 0.2,
+    opacity = 1,
+    color = "white",
+    fillOpacity = 0.8,
+    label = ~paste0(NAME, ": ", 
+                    ifelse(is.na(broadband_access_raw_value), 
+                           "No data", 
+                           comma(broadband_access_raw_value))),
+    highlightOptions = highlightOptions(
+      weight = 1.5,
+      color = "#666",
+      fillOpacity = 1,
+      bringToFront = TRUE
+    )
+  ) |> 
+  addLegend(
+    pal = pal,
+    values = ~broadband_access_raw_value,
+    title = "Broadband Access",
+    position = "bottomright"
+  )
+
+?leaflet
 
 
 #Correlations
@@ -241,4 +267,6 @@ view(cor_results)
 view(clean_names_national_subset_counties |> 
   select(name, state_abbreviation, state_fips_code, percent_asian_raw_value, percent_hispanic_raw_value, percent_american_indian_or_alaska_native_raw_value,
          percent_non_hispanic_black_raw_value, percent_non_hispanic_white_raw_value, percent_native_hawaiian_or_other_pacific_islander_raw_value))
+
+
 
