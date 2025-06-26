@@ -7,6 +7,7 @@ library(naniar)
 library(janitor)
 library(VIM)
 library(stats)
+library(stringr)
 
 national_data <- read_csv("data/analytic_data2025_v2.csv")
 
@@ -119,49 +120,54 @@ clean_names_national_data_subset <- clean_names_national_data |>
     percent_disability_functional_limitations_raw_value,
     percent_not_proficient_in_english_raw_value,
     percent_rural_raw_value,
+    children_eligible_for_free_or_reduced_price_lunch_raw_value
   )
 
-#Change necessary columns to numeric
-char_cols <- c("state_abbreviation", "name" )
-
-cols_to_convert <- setdiff(names(clean_names_national_subset_counties), char_cols)
-
-clean_names_national_subset_counties[cols_to_convert] <- lapply(
-  clean_names_national_subset_counties[cols_to_convert],
-  function(x) as.numeric(as.character(x))
-)
-
-clean_names_national_subset_counties[is.na(clean_names_national_subset_counties)] <- 0
-
-  
-#Data set excluding US and States
+##CLEAN DATA SET
 clean_names_national_subset_counties <- clean_names_national_data_subset |> 
   filter(str_detect(name, "County|Municipality|Census|Borough|Region|District|Parish|city"))
 
+char_cols <- c("state_abbreviation", "name")
 
-# Get variable (column) names
+
+cols_to_convert <- setdiff(names(clean_names_national_subset_counties), char_cols)
+
+
+clean_names_national_subset_counties[cols_to_convert] <- lapply(
+  clean_names_national_subset_counties[cols_to_convert],
+  function(x) {
+    x <- as.character(x)
+    x[x %in% c("NA", "", "N/A", "*", "Suppressed")] <- NA
+    as.numeric(x)
+  }
+)
+
+#Replace NA values with 0 (DON'T RUN IF WANT TO USE MISSING VALUE PLOTS)
+clean_names_national_subset_counties[is.na(clean_names_national_subset_counties)] <- 0
+
+
+##TO VIEW MISSING VALUES
 vars <- colnames(clean_names_national_subset_counties)
 
-# Split into 4 subsets
 var_groups <- split(vars, cut(seq_along(vars), 4, labels = FALSE))
-
 
 for (i in 1:4) {
   
-  # Subset the data frame by variable group
+  
   data_subset <- clean_names_national_subset_counties[, var_groups[[i]]]
   
-  # Plot missing values
+  
   print(gg_miss_var(data_subset) + ggtitle(paste("Missingness - Group", i)))
 }
 
 
 #Scatter plot variable against preventable hospital stays
 clean_names_national_subset_counties |>
-  ggplot(aes(x = ratio_of_population_to_primary_care_physicians,
+  ggplot(aes(x = uninsured_raw_value,
              y = preventable_hospital_stays_raw_value + 1)) + 
   geom_point(alpha = 0.3, size = 1) +
   scale_y_log10() +
+  scale_x_log10() +
   labs(y = "Preventable Hospital Stays (log scale)")
 
 #Correlation between two variables
@@ -198,7 +204,13 @@ ggplot(map_data) +
 
 #US County Map
 ggplot(map_data) +
-  geom_sf(aes(fill = ratio_of_population_to_primary_care_providers_other_than_physicians), color = NA) +
+  geom_sf(aes(fill = ratio_of_population_to_mental_health_providers), color = NA) +
+  coord_sf(xlim = c(-125, -66), ylim = c(24, 50)) +  # Approximate bounds of the lower 48
+  scale_fill_viridis_c(option = "magma", na.value = "grey90") +
+  theme_minimal()
+
+ggplot(map_data) +
+  geom_sf(aes(fill = percent_non_hispanic_white_raw_value), color = NA) +
   coord_sf(xlim = c(-125, -66), ylim = c(24, 50)) +  # Approximate bounds of the lower 48
   scale_fill_viridis_c(option = "magma", na.value = "grey90") +
   theme_minimal()
@@ -224,5 +236,9 @@ cor_with_outcome <- function(df, outcome_var) {
 cor_results <- cor_with_outcome(clean_names_national_subset_counties, "preventable_hospital_stays_raw_value")
 
 # View results
-head(cor_results)
+view(cor_results)
+
+view(clean_names_national_subset_counties |> 
+  select(name, state_abbreviation, state_fips_code, percent_asian_raw_value, percent_hispanic_raw_value, percent_american_indian_or_alaska_native_raw_value,
+         percent_non_hispanic_black_raw_value, percent_non_hispanic_white_raw_value, percent_native_hawaiian_or_other_pacific_islander_raw_value))
 
