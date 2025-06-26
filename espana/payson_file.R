@@ -384,12 +384,14 @@ white_data <- national_data |>
   rename(
     white_pct = `% Non-Hispanic White raw value`,
     ratio_dentists = `Ratio of population to dentists.`,
-    preventable_hosp_stays = `Preventable Hospital Stays raw value`
+    preventable_hosp_stays = `Preventable Hospital Stays raw value`,
+    ratio_physicians = `Ratio of population to primary care physicians.`
   ) |>
   mutate(
     white_pct = as.numeric(white_pct),
     ratio_dentists = as.numeric(ratio_dentists),
     preventable_hosp_stays = as.numeric(preventable_hosp_stays),
+    ratio_physicians = as.numeric(ratio_physicians),
     white_group = if_else(white_pct >= 0.5, "White Majority", "White Minority")
   )
 
@@ -398,7 +400,8 @@ plot_data <- white_data |>
   filter(
     !is.na(ratio_dentists),
     !is.na(preventable_hosp_stays),
-    !is.na(white_group)
+    !is.na(white_group),
+    !is.na(ratio_physicians)
   )
 
 # Create plot
@@ -410,6 +413,29 @@ ggplot(plot_data, aes(x = ratio_dentists, y = preventable_hosp_stays)) +
     title = "Population-to-Dentist Ratio vs Preventable Hospital Stays",
     subtitle = "Comparing White-Majority and White-Minority Counties",
     x = "Population-to-Dentist Ratio",
+    y = "Preventable Hospital Stays (per 100,000)"
+  ) +
+  scale_y_continuous(labels = comma_format()) +
+  scale_x_continuous(labels = comma_format()) +
+  theme_light() +
+  theme(
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5),
+    plot.subtitle = element_text(size = 13, hjust = 0.5, margin = margin(b = 10)),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 10),
+    strip.text = element_text(face = "bold", size = 12),
+    panel.grid.minor = element_blank(),
+    panel.spacing = unit(1.2, "lines")
+  )
+
+ggplot(plot_data, aes(x = ratio_physicians, y = preventable_hosp_stays)) +
+  geom_point(alpha = 0.4, size = 0.5, color = "blue") +
+  geom_smooth(method = "lm", se = FALSE, color = "red", linewidth = 1) +
+  facet_wrap(~white_group, scales = "fixed") +
+  labs(
+    title = "ratio_physicians vs Preventable Hospital Stays",
+    subtitle = "Comparing White-Majority and White-Minority Counties",
+    x = "ratio_physicians",
     y = "Preventable Hospital Stays (per 100,000)"
   ) +
   scale_y_continuous(labels = comma_format()) +

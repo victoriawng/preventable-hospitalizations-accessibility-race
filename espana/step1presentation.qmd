@@ -1,0 +1,70 @@
+---
+title: "Checkpoint 1 Presentation"
+format: revealjs
+editor: visual
+---
+
+## Introduction
+
+
+**Project Question:**\
+\> Does healthcare access (e.g., primary care physicians, uninsured rate) affect the number of preventable hospital stays for different racial groups at the county level?
+
+**Why It Matters:**\
+- say things here
+
+------------------------------------------------------------------------
+
+## Data
+
+**Source:**\
+- 2025 County Health Rankings Analytic Dataset
+
+**Variables of Interest:**\
+- Preventable Hospital Stays - Primary Care Physician Ratio - Uninsured Rate - others things 
+- County-level racial groupings (White Majority vs White Minority)
+
+**Preprocessing Highlights:**\
+- explain how we did white majority vs minority 
+
+------------------------------------------------------------------------
+
+## EDA Plot 1: PCP Ratio vs Preventable Stays
+
+```{r}
+# plot here 
+```
+
+------------------------------------------------------------------------
+
+## EDA Plot 2: Uninsured Rate vs Preventable Stays
+
+```{r}
+# plot here 
+```
+
+------------------------------------------------------------------------
+
+## Methods (Planned)
+
+**Modeling Strategy:**\
+- Use ....
+
+**Justification:**\
+- give reasons 
+
+------------------------------------------------------------------------
+
+## Plan of Action
+
+\*\* Completed:\*\*\
+- Defined research question
+- Cleaned and preprocessed data
+- Created two EDA visualizations
+
+\*\* Next Steps:\*\*\
+- Build linear regression models with interaction terms\
+- Interpret race-specific associations\
+- Check model assumptions and fit\
+- Create tables/figures for final presentation\
+- Draft and revise final poster
