@@ -3,4 +3,8 @@
 .RData
 .Ruserdata
 data/
+<<<<<<< HEAD
 .RDataTmp
+=======
+data_SAS/
+>>>>>>> 998e8571bb878cdba35fcbf7144e5c9e0efef4c4
