@@ -34,18 +34,34 @@ sum(is.na(national_data))
 # look at complete rate
 skim(national_data) |> head(40)
 
+
+# create data set with only columns "variable" and "complete_rate" ---
 na_perc = national_skim |>
   select(skim_variable, complete_rate)
 view(na_perc)
 
 missing_40plus = na_perc |>
-  filter(complete_rate < .6)
+  filter(complete_rate < .6) |>
+  arrange((complete_rate))
 view(missing_40plus)
 
 missing_less40 = na_perc |>
-  filter(complete_rate > .6)
+  filter(complete_rate > .6) |>
+  arrange(desc(complete_rate))
 view(missing_less40)
 
+class(missing_40plus)
+
+missing_40plus_description = merge(missing_40plus, data_dict_2025, by.x = "skim_variable", by.y = "Variable Name")
+
+missing
+
+view(missing_40plus_description)
+
+
+merge1 = merge(missing_40plus, data_dict_2025)
+
+view(merge1)
 
 
 
