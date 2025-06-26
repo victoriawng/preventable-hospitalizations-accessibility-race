@@ -4,15 +4,13 @@ format: revealjs
 editor: visual
 ---
 
-## Introduction
+## Preventable Hospital stays vary with healthcare access across racial groups
 
-
-**Project Question:**\
-\> Does healthcare access (e.g., primary care physicians, uninsured rate) affect the number of preventable hospital stays for different racial groups at the county level?
+**Research Question:**\
+Does healthcare access affect the number of preventable hospital stays for different racial groups at the county level?
 
 **Why It Matters:**\
-- say things here
-
+- 
 ------------------------------------------------------------------------
 
 ## Data
@@ -21,7 +19,7 @@ editor: visual
 - 2025 County Health Rankings Analytic Dataset
 
 **Variables of Interest:**\
-- Preventable Hospital Stays - Primary Care Physician Ratio - Uninsured Rate - others things 
+- Preventable Hospital Stays, Primary Care Physician Ratio, Uninsured Rate - others things 
 - County-level racial groupings (White Majority vs White Minority)
 
 **Preprocessing Highlights:**\
@@ -32,7 +30,7 @@ editor: visual
 ## EDA Plot 1: PCP Ratio vs Preventable Stays
 
 ```{r}
-# plot here 
+# plot here  
 ```
 
 ------------------------------------------------------------------------
