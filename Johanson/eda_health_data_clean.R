@@ -208,7 +208,7 @@ ggplot(map_data) +
 #Run first
 pal <- colorNumeric(
   palette = "magma",
-  domain = map_data$broadband_access_raw_value,
+  domain = map_data$preventable_hospital_stays_raw_value,
   na.color = "gray90"
 )
 
@@ -216,15 +216,15 @@ pal <- colorNumeric(
 leaflet(map_data) |> 
   addProviderTiles("CartoDB.Positron") |>  
   addPolygons(
-    fillColor = ~pal(broadband_access_raw_value),
+    fillColor = ~pal(preventable_hospital_stays_raw_value),
     weight = 0.2,
     opacity = 1,
     color = "white",
     fillOpacity = 0.8,
     label = ~paste0(NAME, ": ", 
-                    ifelse(is.na(broadband_access_raw_value), 
+                    ifelse(is.na(preventable_hospital_stays_raw_value), 
                            "No data", 
-                           comma(broadband_access_raw_value))),
+                           comma(preventable_hospital_stays_raw_value))),
     highlightOptions = highlightOptions(
       weight = 1.5,
       color = "#666",
@@ -234,8 +234,8 @@ leaflet(map_data) |>
   ) |> 
   addLegend(
     pal = pal,
-    values = ~broadband_access_raw_value,
-    title = "Broadband Access",
+    values = ~preventable_hospital_stays_raw_value,
+    title = "Preventable Hospital Stays",
     position = "bottomright"
   )
 
@@ -245,7 +245,7 @@ leaflet(map_data) |>
 #Correlations
 with(clean_names_national_subset_counties,
      cor(ratio_of_population_to_primary_care_providers_other_than_physicians,
-         preventable_hospital_stays_raw_value))
+         unins))
 
 library(dplyr)
 library(purrr)
@@ -265,8 +265,21 @@ cor_results <- cor_with_outcome(clean_names_national_subset_counties, "preventab
 view(cor_results)
 
 view(clean_names_national_subset_counties |> 
-  select(name, state_abbreviation, state_fips_code, percent_asian_raw_value, percent_hispanic_raw_value, percent_american_indian_or_alaska_native_raw_value,
-         percent_non_hispanic_black_raw_value, percent_non_hispanic_white_raw_value, percent_native_hawaiian_or_other_pacific_islander_raw_value))
+       select(name, state_abbreviation, state_fips_code, percent_asian_raw_value, percent_hispanic_raw_value,
+              percent_american_indian_or_alaska_native_raw_value, percent_native_hawaiian_or_other_pacific_islander_raw_value, 
+              percent_non_hispanic_black_raw_value, percent_non_hispanic_white_raw_value))
+
+
+#GLM
+
+prevent_hospitalizations_black_glm <- lm(preventable_hospital_stays_raw_value ~ 
+     uninsured_raw_value + 
+     ratio_of_population_to_primary_care_physicians +
+     percent_non_hispanic_black_raw_value + 
+     uninsured_raw_value:percent_non_hispanic_black_raw_value + 
+     ratio_of_population_to_primary_care_physicians:percent_non_hispanic_black_raw_value, 
+   data = clean_names_national_subset_counties)
 
 
 
+tidy(prevent_hospitalizations_black_glm)
