@@ -24,7 +24,7 @@ vis_miss(national_data, warn_large_data = FALSE) +
 
 
 # sum count of missing data ---
-sum(is.na(national_data))
+# sum(is.na(national_data))
 
 
 
@@ -32,6 +32,7 @@ sum(is.na(national_data))
 
 # to see percentage of missing values in each column ---
 # look at complete rate
+# or look at national_skim we just created
 skim(national_data) |> head(40)
 
 
@@ -52,11 +53,38 @@ view(missing_less40)
 
 class(missing_40plus)
 
+
+# --------------- missing 40% plus of data in a column
 missing_40plus_description = merge(missing_40plus, data_dict_2025, by.x = "skim_variable", by.y = "Variable Name")
+missing_40plus_description = arrange(missing_40plus_description, complete_rate)
 
-missing
 
-view(missing_40plus_description)
+no_ci_denom_num_missing40plus = missing_40plus_description |>
+  filter(!grepl("cilow", skim_variable) & 
+           !grepl("cihigh", skim_variable) &
+           !grepl("numerator", skim_variable) &
+           !grepl("denominator", skim_variable))
+view(no_ci_denom_num_missing40plus)
+
+# nrow(missing_40plus_description) #442
+# nrow(no_ci_denom_num_missing40plus) #108
+(nrow(no_ci_denom_num_missing40plus)/nrow(missing_40plus_description))*100 
+# 24.43% of missing 40% plus is only applicable
+# the rest are confidence interval, denom, or num
+
+
+# --------------- missing 40% less of data in a column
+missing_less40_description = merge(missing_less40, data_dict_2025, by.x = "skim_variable", by.y = "Variable Name") |>
+  arrange()
+missing_less40_description = arrange(missing_less40_description, complete_rate)
+view(missing_less40_description)
+
+no_ci_denom_num_missingless40 = missing_less40_description |>
+  filter(!grepl("cilow", skim_variable) & 
+           !grepl("cihigh", skim_variable) &
+           !grepl("numerator", skim_variable) &
+           !grepl("denominator", skim_variable))
+# view(no_ci_denom_num_missing40plus)
 
 
 merge1 = merge(missing_40plus, data_dict_2025)
