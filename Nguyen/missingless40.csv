@@ -1,0 +1,177 @@
+"","skim_variable","complete_rate","Measure","Description"
+"1","v001_race_black_flag",0.631398252184769,"Premature Death flag (Black) (. = No
+Flag/1=Unreliable/2=Suppressed)",NA
+"2","v138_rawvalue",0.643570536828964,"Drug Overdose Deaths raw value","Number of drug poisoning deaths per 100,000 population."
+"3","v128_rawvalue",0.658551810237203,"Child Mortality raw value","Number of deaths among residents under age 20 per 100,000 population."
+"4","v141_rawvalue",0.660424469413234,"Residential Segregation - Black/White
+raw value","Index of dissimilarity where higher values indicate greater residential segregation between Black and white
+county residents."
+"5","v148_race_white",0.677902621722846,"Firearm Fatalities (White)","Number of deaths due to firearms per 100,000 population."
+"6","v001_race_hispanic_flag",0.712546816479401,"Premature Death flag (Hispanic) (. =
+No Flag/1=Unreliable/2=Suppressed)",NA
+"7","v148_rawvalue",0.735955056179775,"Firearm Fatalities raw value","Number of deaths due to firearms per 100,000 population."
+"8","v161_race_white",0.737827715355805,"Suicides (White)","Number of deaths due to suicide per 100,000 population (age-adjusted)."
+"9","v063_race_hispanic",0.763420724094881,"Median Household Income (Hispanic)","The income where half of households in a county earn more and half of households earn less."
+"10","v183_rawvalue",0.767166042446941,"Feelings of Loneliness raw value","Percentage of adults reporting that they always, usually or sometimes feel lonely."
+"11","v184_rawvalue",0.767166042446941,"Lack of Social and Emotional Support
+raw value","Percentage of adults reporting that they sometimes, rarely, or never get the social and emotional support
+they need."
+"12","v161_other_data_1",0.780274656679151,"Crude suicide rate","Number of deaths due to suicide per 100,000 population (age-adjusted)."
+"13","v161_rawvalue",0.780274656679151,"Suicides raw value","Number of deaths due to suicide per 100,000 population (age-adjusted)."
+"14","v024_race_hispanic",0.792759051186017,"Children in Poverty (Hispanic)","Percentage of people under age 18 in poverty."
+"15","v021_rawvalue",0.794631710362047,"High School Graduation raw value","Percentage of ninth-grade cohort that graduates in four years."
+"16","v159_race_white",0.795568039950062,"Reading Scores (White)","Average grade level performance for 3rd graders on English Language Arts standardized tests."
+"17","v039_race_white",0.802122347066167,"Motor Vehicle Crash Deaths (White)","Number of motor vehicle crash deaths per 100,000 population."
+"18","v159_rawvalue",0.82334581772784,"Reading Scores raw value","Average grade level performance for 3rd graders on English Language Arts standardized tests."
+"19","v061_rawvalue",0.853932584269663,"HIV Prevalence raw value","Number of people aged 13 years and older living with a diagnosis of human immunodeficiency virus (HIV)
+infection per 100,000 population."
+"20","v039_rawvalue",0.860174781523096,"Motor Vehicle Crash Deaths raw value","Number of motor vehicle crash deaths per 100,000 population."
+"21","v014_race_white",0.864544319600499,"Teen Births (White)","Number of births per 1,000 female population ages 15-19."
+"22","v160_race_white",0.878277153558052,"Math Scores (White)","Average grade level performance for 3rd graders on math standardized tests."
+"23","v001_race_asian_flag",0.901997503121099,"Premature Death flag (Asian) (. = No
+Flag/1=Unreliable/2=Suppressed)",NA
+"24","v179_rawvalue",0.904494382022472,"Access to Parks raw value","Percentage of the population living within a half mile of a park."
+"25","v001_race_aian_flag",0.916354556803995,"Premature Death flag (AIAN) (. = No
+Flag/1=Unreliable/2=Suppressed)",NA
+"26","v160_rawvalue",0.917602996254682,"Math Scores raw value","Average grade level performance for 3rd graders on math standardized tests."
+"27","v065_rawvalue",0.922596754057428,"Children Eligible for Free or Reduced
+Price Lunch raw value","Percentage of children enrolled in public schools that are eligible for free or reduced price lunch."
+"28","v014_rawvalue",0.924157303370786,"Teen Births raw value","Number of births per 1,000 female population ages 15-19."
+"29","v167_rawvalue",0.931023720349563,"School Segregation raw value","The extent to which students within different race and ethnicity groups are unevenly distributed across
+schools when compared with the racial and ethnic composition of the local population. The index ranges
+from 0 to 1 with lower values representing a school composition that approximates race and ethnicity
+distributions in the student populations within the county, and higher values representing more segregation."
+"30","v037_race_white",0.934456928838951,"Low Birth Weight (White)","Percentage of live births with low birth weight (< 2,500 grams)."
+"31","v062_other_data_1",0.944132334581773,"Ratio of population to mental health
+providers.","Ratio of population to mental health providers."
+"32","v062_rawvalue",0.944132334581773,"Mental Health Providers raw value","Number of mental health care providers per 100,000 population"
+"33","v135_race_white",0.944444444444444,"Injury Deaths (White)","Number of deaths due to injury per 100,000 population."
+"34","v004_other_data_1",0.948189762796504,"Ratio of population to primary care
+physicians.","Ratio of population to primary care physicians."
+"35","v004_rawvalue",0.948189762796504,"Primary Care Physicians raw value","Number of primary care physicians per 100,000 population"
+"36","v147_race_white",0.948501872659176,"Life Expectancy (White)","Average number of years people are expected to live."
+"37","v172_rawvalue",0.949750312109863,"Child Care Centers raw value","Number of child care centers per 1,000 population under 5 years old."
+"38","v181_rawvalue",0.957240948813982,"Library Access raw value","Library visits per person living within the library service area per year."
+"39","v045_rawvalue",0.959737827715356,"Sexually Transmitted Infections raw
+value","Number of newly diagnosed chlamydia cases per 100,000 population."
+"40","v005_race_white",0.965980024968789,"Preventable Hospital Stays (White)","Rate of hospital stays for ambulatory-care sensitive conditions per 100,000 Medicare enrollees."
+"41","v037_rawvalue",0.965980024968789,"Low Birth Weight raw value","Percentage of live births with low birth weight (< 2,500 grams)."
+"42","v135_rawvalue",0.965980024968789,"Injury Deaths raw value","Number of deaths due to injury per 100,000 population."
+"43","v001_race_white",0.967852684144819,"Premature Death (White)","Years of potential life lost before age 75 per 100,000 population (age-adjusted)."
+"44","v127_race_white",0.967852684144819,"Premature Age-Adjusted Mortality
+(White)","Number of deaths among residents under age 75 per 100,000 population (age-adjusted)."
+"45","v169_rawvalue",0.968164794007491,"School Funding Adequacy raw value","The average gap in dollars between actual and required spending per pupil among public school districts.
+Required spending is an estimate of dollars needed to achieve U.S. average test scores in each district."
+"46","v088_other_data_1",0.970037453183521,"Ratio of population to dentists.","Ratio of population to dentists."
+"47","v088_rawvalue",0.970037453183521,"Dentists raw value","Number of dentists per 100,000 population"
+"48","v182_other_data_2",0.970349563046192,"Adverse Climate Events (Heat)","Indicator of thresholds met for the following adverse climate and weather-related event categories: extreme
+heat, moderate or greater drought, and disaster declarations."
+"49","v125_rawvalue",0.972534332084894,"Air Pollution: Particulate Matter raw
+value","Average daily density of fine particulate matter in micrograms per cubic meter (PM2.5)."
+"50","v024_race_white",0.972846441947566,"Children in Poverty (White)","Percentage of people under age 18 in poverty."
+"51","v147_rawvalue",0.973782771535581,"Life Expectancy raw value","Average number of years people are expected to live."
+"52","v005_rawvalue",0.974094881398252,"Preventable Hospital Stays raw value","Rate of hospital stays for ambulatory-care sensitive conditions per 100,000 Medicare enrollees."
+"53","v067_race_white",0.975967540574282,"Driving Alone to Work (White)","Percentage of the workforce that drives alone to work."
+"54","v001_race_nhopi_flag",0.978776529338327,"Premature Death flag (NHOPI) (. = No
+Flag/1=Unreliable/2=Suppressed)",NA
+"55","v182_other_data_1",0.97940074906367,"Adverse Climate Events (Drought)","Indicator of thresholds met for the following adverse climate and weather-related event categories: extreme
+heat, moderate or greater drought, and disaster declarations."
+"56","v001_rawvalue",0.980024968789014,"Premature Death raw value","Years of potential life lost before age 75 per 100,000 population (age-adjusted)."
+"57","v127_rawvalue",0.980024968789014,"Premature Age-Adjusted Mortality raw
+value","Number of deaths among residents under age 75 per 100,000 population (age-adjusted)."
+"58","v124_rawvalue",0.980337078651685,"Drinking Water Violations raw value","Indicator of the presence of health-related drinking water violations. 0=No, 1=Yes"
+"59","v178_rawvalue",0.980649188514357,"Census Participation raw value","Percentage of all households that self-responded to the 2020 census (by internet, paper questionnaire or
+telephone)."
+"60","v182_other_data_3",0.9812734082397,"Adverse Climate Events (Disasters)","Indicator of thresholds met for the following adverse climate and weather-related event categories: extreme
+heat, moderate or greater drought, and disaster declarations."
+"61","v182_rawvalue",0.9812734082397,"Adverse Climate Events raw value","Indicator of thresholds met for the following adverse climate and weather-related event categories: extreme
+heat, moderate or greater drought, and disaster declarations."
+"62","v132_rawvalue",0.982833957553059,"Access to Exercise Opportunities raw
+value","Percentage of population with adequate access to locations for physical activity."
+"63","county_clustered",0.983770287141074,"County Clustered (Yes=1/No=0)",NA
+"64","v133_rawvalue",0.983770287141074,"Food Environment Index raw value","Index of factors that contribute to a healthy food environment, from 0 (worst) to 10 (best)."
+"65","v083_rawvalue",0.986267166042447,"Limited Access to Healthy Foods raw
+value","Percentage of population who are low-income and do not live close to a grocery store."
+"66","v156_rawvalue",0.987515605493134,"Traffic Volume raw value","Average traffic volume per meter of major roadways in the county."
+"67","v177_rawvalue",0.987515605493134,"Voter Turnout raw value","Percentage of citizen population aged 18 or older who voted in the 2020 U.S. Presidential election."
+"68","v050_race_white",0.989076154806492,"Mammography Screening (White)","Percentage of female Medicare enrollees ages 65-74 who received an annual mammography screening."
+"69","v134_rawvalue",0.989076154806492,"Alcohol-Impaired Driving Deaths raw
+value","Percentage of driving deaths with alcohol involvement."
+"70","v050_rawvalue",0.990324594257179,"Mammography Screening raw value","Percentage of female Medicare enrollees ages 65-74 who received an annual mammography screening."
+"71","v044_rawvalue",0.99063670411985,"Income Inequality raw value","Ratio of household income at the 80th percentile to income at the 20th percentile."
+"72","v155_race_white",0.990948813982522,"Flu Vaccinations (White)","Percentage of fee-for-service (FFS) Medicare enrollees who had an annual flu vaccination."
+"73","v155_rawvalue",0.991573033707865,"Flu Vaccinations raw value","Percentage of fee-for-service (FFS) Medicare enrollees who had an annual flu vaccination."
+"74","v131_other_data_1",0.993445692883895,"Ratio of population to primary care
+providers other than physicians.","Ratio of population to primary care providers other than physicians."
+"75","v131_rawvalue",0.993445692883895,"Other Primary Care Providers raw
+value","Number of other primary care providers per 100,000 population"
+"76","v151_rawvalue",0.994694132334582,"Gender Pay Gap raw value","Ratio of women's median earnings to men's median earnings for all full-time, year-round workers, presented
+as &quot;cents on the dollar.&quot;"
+"77","v154_rawvalue",0.995630461922597,"Severe Housing Cost Burden raw value","Percentage of households that spend 50% or more of their household income on housing."
+"78","v063_race_white",0.995942571785268,"Median Household Income (White)","The income where half of households in a county earn more and half of households earn less."
+"79","v171_rawvalue",0.996566791510612,"Child Care Cost Burden raw value","Child care costs for a household with two children as a percent of median household income."
+"80","v023_rawvalue",0.996878901373283,"Unemployment raw value","Percentage of population ages 16 and older unemployed but seeking work."
+"81","v082_rawvalue",0.996878901373283,"Children in Single-Parent Households
+raw value","Percentage of children that live in a household headed by a single parent."
+"82","v003_rawvalue",0.997191011235955,"Uninsured Adults raw value","Percentage of adults under age 65 without health insurance."
+"83","v024_rawvalue",0.997191011235955,"Children in Poverty raw value","Percentage of people under age 18 in poverty."
+"84","v063_rawvalue",0.997191011235955,"Median Household Income raw value","The income where half of households in a county earn more and half of households earn less."
+"85","v069_rawvalue",0.997191011235955,"Some College raw value","Percentage of adults ages 25-44 with some post-secondary education."
+"86","v085_rawvalue",0.997191011235955,"Uninsured raw value","Percentage of population under age 65 without health insurance."
+"87","v122_rawvalue",0.997191011235955,"Uninsured Children raw value","Percentage of children under age 19 without health insurance."
+"88","v002_rawvalue",0.997503121098627,"Poor or Fair Health raw value","Percentage of adults reporting fair or poor health (age-adjusted)."
+"89","v009_rawvalue",0.997503121098627,"Adult Smoking raw value","Percentage of adults who are current smokers (age-adjusted)."
+"90","v011_rawvalue",0.997503121098627,"Adult Obesity raw value","Percentage of the adult population (age 18 and older) that reports a body mass index (BMI) greater than or
+equal to 30 kg/m2 (age-adjusted)."
+"91","v036_rawvalue",0.997503121098627,"Poor Physical Health Days raw value","Average number of physically unhealthy days reported in past 30 days (age-adjusted)."
+"92","v042_rawvalue",0.997503121098627,"Poor Mental Health Days raw value","Average number of mentally unhealthy days reported in past 30 days (age-adjusted)."
+"93","v049_rawvalue",0.997503121098627,"Excessive Drinking raw value","Percentage of adults reporting binge or heavy drinking (age-adjusted)."
+"94","v051_rawvalue",0.997503121098627,"Population raw value","Resident population."
+"95","v052_rawvalue",0.997503121098627,"% Below 18 Years of Age raw value","Percentage of population below 18 years of age."
+"96","v053_rawvalue",0.997503121098627,"% 65 and Older raw value","Percentage of population ages 65 and older."
+"97","v054_rawvalue",0.997503121098627,"% Non-Hispanic Black raw value","Percentage of population identifying as non-Hispanic Black or African American."
+"98","v055_rawvalue",0.997503121098627,"% American Indian or Alaska Native
+raw value","Percentage of population identifying as American Indian or Alaska Native."
+"99","v056_rawvalue",0.997503121098627,"% Hispanic raw value","Percentage of population identifying as Hispanic."
+"100","v057_rawvalue",0.997503121098627,"% Female raw value","Percentage of population identifying as female."
+"101","v058_rawvalue",0.997503121098627,"% Rural raw value","Percentage of population living in a census-defined rural area."
+"102","v059_rawvalue",0.997503121098627,"% Not Proficient in English raw value","Percentage of population aged 5 and over who reported speaking English less than well."
+"103","v060_rawvalue",0.997503121098627,"Diabetes Prevalence raw value","Percentage of adults aged 18 and above with diagnosed diabetes (age-adjusted)."
+"104","v067_rawvalue",0.997503121098627,"Driving Alone to Work raw value","Percentage of the workforce that drives alone to work."
+"105","v070_rawvalue",0.997503121098627,"Physical Inactivity raw value","Percentage of adults age 18 and over reporting no leisure-time physical activity (age-adjusted)."
+"106","v080_rawvalue",0.997503121098627,"% Native Hawaiian or Other Pacific
+Islander raw value","Percentage of population identifying as Native Hawaiian or Other Pacific Islander."
+"107","v081_rawvalue",0.997503121098627,"% Asian raw value","Percentage of population identifying as Asian."
+"108","v126_rawvalue",0.997503121098627,"% Non-Hispanic White raw value","Percentage of population identifying as non-Hispanic white."
+"109","v136_other_data_1",0.997503121098627,"Percentage of households with high
+housing costs","Percentage of households with severe cost burden > monthly housing costs (including utilities) exceed 50%
+of monthly income"
+"110","v136_other_data_2",0.997503121098627,"Percentage of households with
+overcrowding","Percentage of households with overcrowding > more than 1 person per room"
+"111","v136_other_data_3",0.997503121098627,"Percentage of households with lack of
+kitchen or plumbing facilities","Percentage of households lacking complete plumbing or kitchen facilities"
+"112","v136_rawvalue",0.997503121098627,"Severe Housing Problems raw value","Percentage of households with at least 1 of 4 housing problems: overcrowding, high housing costs, lack of
+kitchen facilities, or lack of plumbing facilities."
+"113","v137_rawvalue",0.997503121098627,"Long Commute - Driving Alone raw
+value","Among workers who commute in their car alone, the percentage that commute more than 30 minutes."
+"114","v139_rawvalue",0.997503121098627,"Food Insecurity raw value","Percentage of population who lack adequate access to food."
+"115","v140_rawvalue",0.997503121098627,"Social Associations raw value","Number of membership associations per 10,000 population."
+"116","v143_rawvalue",0.997503121098627,"Insufficient Sleep raw value","Percentage of adults who report fewer than 7 hours of sleep on average (age-adjusted)."
+"117","v144_rawvalue",0.997503121098627,"Frequent Physical Distress raw value","Percentage of adults reporting 14 or more days of poor physical health per month (age-adjusted)."
+"118","v145_rawvalue",0.997503121098627,"Frequent Mental Distress raw value","Percentage of adults reporting 14 or more days of poor mental health per month (age-adjusted)."
+"119","v153_rawvalue",0.997503121098627,"Homeownership raw value","Percentage of owner-occupied housing units."
+"120","v166_rawvalue",0.997503121098627,"Broadband Access raw value","Percentage of households with broadband internet connection."
+"121","v168_rawvalue",0.997503121098627,"High School Completion raw value","Percentage of adults ages 25 and over with a high school diploma or equivalent."
+"122","v180_rawvalue",0.997503121098627,"% Disability: Functional Limitations raw
+value","Percentage of adults reporting any of six specific functional limitations"
+"123","county",1,"Name",NA
+"124","countycode",1,"County FIPS Code",NA
+"125","fipscode",1,"5-digit FIPS Code",NA
+"126","state",1,"State Abbreviation",NA
+"127","statecode",1,"State FIPS Code",NA
+"128","v001_flag",1,"Premature Death flag (0 = No
+Flag/1=Unreliable/2=Suppressed)",NA
+"129","v037_flag",1,"LBW unreliable indicator (Unreliable =
+Numerator < 20 or relative standard
+error > 20%)",NA
+"130","year",1,"Release Year",NA

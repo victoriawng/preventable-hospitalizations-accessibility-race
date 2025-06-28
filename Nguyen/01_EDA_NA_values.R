@@ -66,6 +66,7 @@ no_ci_denom_num_missing40plus = missing_40plus_description |>
            !grepl("denominator", skim_variable))
 view(no_ci_denom_num_missing40plus)
 
+
 # nrow(missing_40plus_description) #442
 # nrow(no_ci_denom_num_missing40plus) #108
 (nrow(no_ci_denom_num_missing40plus)/nrow(missing_40plus_description))*100 
@@ -74,9 +75,9 @@ view(no_ci_denom_num_missing40plus)
 
 
 # --------------- missing 40% less of data in a column
-missing_less40_description = merge(missing_less40, data_dict_2025, by.x = "skim_variable", by.y = "Variable Name") |>
-  arrange()
+missing_less40_description = merge(missing_less40, data_dict_2025, by.x = "skim_variable", by.y = "Variable Name")
 missing_less40_description = arrange(missing_less40_description, complete_rate)
+
 view(missing_less40_description)
 
 no_ci_denom_num_missingless40 = missing_less40_description |>
@@ -84,12 +85,12 @@ no_ci_denom_num_missingless40 = missing_less40_description |>
            !grepl("cihigh", skim_variable) &
            !grepl("numerator", skim_variable) &
            !grepl("denominator", skim_variable))
-# view(no_ci_denom_num_missing40plus)
+view(no_ci_denom_num_missingless40)
 
 
-merge1 = merge(missing_40plus, data_dict_2025)
+# export------------------------------------------------------------------------
+# write.csv(no_ci_denom_num_missingless40, "missingless40.csv") 
 
-view(merge1)
 
 
 
