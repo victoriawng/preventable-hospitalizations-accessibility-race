@@ -1,36 +1,36 @@
 ---
-title: "Checkpoint 1 Presentation"
+title: "Checkpoint 1: EDA"
 format: revealjs
 editor: visual
 ---
 
-## Preventable Hospital stays vary with healthcare access across racial groups
+## Does healthcare access affect the number of preventable hospital stays of certain racial groups at the county level?
 
-**Research Question:**\
-Does healthcare access affect the number of preventable hospital stays for different racial groups at the county level?
+- Reduce preventable hospitalizations
+- Equitable resource allocation
+- Focus efforts where help is needed most
 
-**Why It Matters:**\
-- 
 ------------------------------------------------------------------------
 
 ## Data
 
-**Source:**\
-- 2025 County Health Rankings Analytic Dataset
+**Source:**<br>
+2025 County Health Rankings Analytic Dataset
+
 
 **Variables of Interest:**\
-- Preventable Hospital Stays, Primary Care Physician Ratio, Uninsured Rate - others things 
-- County-level racial groupings (White Majority vs White Minority)
+enter here
 
 **Preprocessing Highlights:**\
-- explain how we did white majority vs minority 
+enter here
 
 ------------------------------------------------------------------------
 
 ## EDA Plot 1: PCP Ratio vs Preventable Stays
 
 ```{r}
-# plot here  
+#source("payson_file.R")
+#print(map_inter)
 ```
 
 ------------------------------------------------------------------------
@@ -49,16 +49,14 @@ Does healthcare access affect the number of preventable hospital stays for diffe
 - Use ....
 
 **Justification:**\
-- give reasons 
+- give reasons
 
 ------------------------------------------------------------------------
 
 ## Plan of Action
 
 \*\* Completed:\*\*\
-- Defined research question
-- Cleaned and preprocessed data
-- Created two EDA visualizations
+- Defined research question - Cleaned and preprocessed data - Created two EDA visualizations
 
 \*\* Next Steps:\*\*\
 - Build linear regression models with interaction terms\
