@@ -239,7 +239,7 @@ leaflet(map_data) |>
     position = "bottomright"
   )
 
-?leaflet
+?colorNumeric
 
 
 #Correlations
