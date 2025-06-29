@@ -17,7 +17,6 @@ editor: visual
 ## **Why It Matters:** 
 
 =======
->>>>>>> 7ee0a101efb53b4520a6b63566b9fd4e4ad4fa0e
 ------------------------------------------------------------------------
 
 ## National Data
@@ -42,7 +41,6 @@ County Health Rankings 2025
 
 -   Filtered and cleaned to complete observations
 -   Created "White Majority" vs. "Minority" indicator
->>>>>>> 7ee0a101efb53b4520a6b63566b9fd4e4ad4fa0e
 
 ------------------------------------------------------------------------
 
@@ -58,20 +56,17 @@ load graph here
 - Predictors: Uninsured rate, provider ratio, race group
 
 **Modeling Strategy:**\
-<<<<<<< HEAD
 - Use ....
 
 **Justification:**\
 - give reasons
 =======
 - Explore variable selection and regularization
->>>>>>> 7ee0a101efb53b4520a6b63566b9fd4e4ad4fa0e
 
 ------------------------------------------------------------------------
 
 ## Moving into modeling and interpretation
 
-<<<<<<< HEAD
 \*\* Completed:\*\*\
 - Defined research question - Cleaned and preprocessed data - Created two EDA visualizations
 =======
@@ -79,7 +74,6 @@ load graph here
 - Defined research question\
 - Cleaned and preprocessed dataset\
 - Created initial EDA visualizations
->>>>>>> 7ee0a101efb53b4520a6b63566b9fd4e4ad4fa0e
 
 **Next Steps:**\
 - Fit regression models with race × access interactions\
