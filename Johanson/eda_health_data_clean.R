@@ -239,7 +239,7 @@ leaflet(map_data) |>
     position = "bottomright"
   )
 
-?leaflet
+?colorNumeric
 
 
 #Correlations
@@ -251,10 +251,10 @@ library(dplyr)
 library(purrr)
 
 cor_with_outcome <- function(df, outcome_var) {
-  df %>%
-    select(where(is.numeric)) %>%
-    select(-all_of(outcome_var)) %>%
-    map_dbl(~ cor(.x, df[[outcome_var]], use = "complete.obs")) %>%
+  df |> 
+    select(where(is.numeric)) |> 
+    select(-all_of(outcome_var)) |> 
+    map_dbl(~ cor(.x, df[[outcome_var]], use = "complete.obs")) |> 
     sort(decreasing = TRUE)
 }
 
