@@ -42,11 +42,13 @@ County Health Rankings 2025
 ## Regression Analysis of Racial Disparities in Preventable Hospital Stays
 
 **Planned Approach:**
+
 - Linear regression with interaction terms
 - Outcome: Preventable hospital stays
 - Predictors: Uninsured rate, provider ratio, race group
 
 **Modeling Strategy:**
+
 - Explore variable selection and regularization
 
 ------------------------------------------------------------------------
