@@ -10,6 +10,7 @@ library(stats)
 library(stringr)
 library(scales)
 library(leaflet)
+library(tigris)
 
 national_data <- read_csv("data/analytic_data2025_v2.csv")
 
@@ -183,6 +184,7 @@ options(tigris_use_cache = TRUE)
 # Get shapefile for all US counties
 counties_sf <- counties(cb = TRUE, year = 2023, class = "sf")
 
+?counties
 
 clean_names_national_subset_counties <- clean_names_national_subset_counties |> 
   mutate(
@@ -193,15 +195,6 @@ clean_names_national_subset_counties <- clean_names_national_subset_counties |>
 
 map_data <- counties_sf |> 
   left_join(clean_names_national_subset_counties, by = c("GEOID" = "fips"))
-
-
-
-#US County Map
-ggplot(map_data) +
-  geom_sf(aes(fill = preventable_hospital_stays_raw_value), color = NA) +
-  coord_sf(xlim = c(-125, -66), ylim = c(24, 50)) +  
-  scale_fill_viridis_c(option = "magma", na.value = "grey90") +
-  theme_minimal()
 
 #Interactive US County Map
 
@@ -239,47 +232,7 @@ leaflet(map_data) |>
     position = "bottomright"
   )
 
-?colorNumeric
-
-
-#Correlations
-with(clean_names_national_subset_counties,
-     cor(ratio_of_population_to_primary_care_providers_other_than_physicians,
-         unins))
-
-library(dplyr)
-library(purrr)
-
-cor_with_outcome <- function(df, outcome_var) {
-  df |> 
-    select(where(is.numeric)) |> 
-    select(-all_of(outcome_var)) |> 
-    map_dbl(~ cor(.x, df[[outcome_var]], use = "complete.obs")) |> 
-    sort(decreasing = TRUE)
-}
-
-# Run it on your dataset:
-cor_results <- cor_with_outcome(clean_names_national_subset_counties, "preventable_hospital_stays_raw_value")
-
-# View results
-view(cor_results)
-
-view(clean_names_national_subset_counties |> 
-       select(name, state_abbreviation, state_fips_code, percent_asian_raw_value, percent_hispanic_raw_value,
-              percent_american_indian_or_alaska_native_raw_value, percent_native_hawaiian_or_other_pacific_islander_raw_value, 
-              percent_non_hispanic_black_raw_value, percent_non_hispanic_white_raw_value))
-
-
-#GLM
-
-prevent_hospitalizations_black_glm <- lm(preventable_hospital_stays_raw_value ~ 
-     uninsured_raw_value + 
-     ratio_of_population_to_primary_care_physicians +
-     percent_non_hispanic_black_raw_value + 
-     uninsured_raw_value:percent_non_hispanic_black_raw_value + 
-     ratio_of_population_to_primary_care_physicians:percent_non_hispanic_black_raw_value, 
-   data = clean_names_national_subset_counties)
 
 
 
-tidy(prevent_hospitalizations_black_glm)
+
