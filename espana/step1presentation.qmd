@@ -13,20 +13,20 @@ editor: visual
 -   Equitable resource allocation
 -   Focus efforts where help is needed most
 
-## **Why It Matters:**
-
-## =======
+------------------------------------------------------------------------
 
 ## National Data
 
-**Source:**\
+**Source:**
 County Health Rankings 2025
 
-**Variables of Interest:**\
+**Variables of Interest:**
 - Preventable Hospital Stays, Primary Care Physician Ratio, Uninsured Rate - others things - County-level racial groupings (White Majority vs White Minority)
 
-**Preprocessing Highlights:**\
-- explain how we did white majority vs minority ======= **Raw Data:**
+**Preprocessing Highlights:**
+- explain how we did white majority vs minority
+
+**Raw Data:**
 
 -   County-level health outcomes(ex)
 -   Healthcare access variables(ex)
@@ -41,31 +41,35 @@ County Health Rankings 2025
 
 ## enter title assertion here from graph
 
-load graph here
-
+```{r}
+#source("thescriptfile.r")
+#print(map)
+```
 ## Regression Analysis of Racial Disparities in Preventable Hospital Stays
 
-**Planned Approach:**\
-- Linear regression with interaction terms\
-- Outcome: Preventable hospital stays\
+**Planned Approach:**
+- Linear regression with interaction terms
+- Outcome: Preventable hospital stays
 - Predictors: Uninsured rate, provider ratio, race group
 
-**Modeling Strategy:**\
-- Use ....
 
-**Justification:**\
-- give reasons ======= - Explore variable selection and regularization
+
+**Modeling Strategy:**
+- Explore variable selection and regularization
 
 ------------------------------------------------------------------------
-
 ## Moving into modeling and interpretation
 
-\*\* Completed:\*\*\
-- Defined research question - Cleaned and preprocessed data - Created two EDA visualizations ======= **Completed:**\
-- Defined research question\
-- Cleaned and preprocessed dataset\
+
+**Completed:**
+
+- Defined research question
+- Cleaned and preprocessed dataset
+
 - Created initial EDA visualizations
 
-**Next Steps:**\
-- Fit regression models with race × access interactions\
-- Interpret disparities and validate model - Create visual summaries and poster
+**Next Steps:**
+
+- Fit regression models with race × access interactions
+- Interpret disparities and validate model
+- Create visual summaries and poster
