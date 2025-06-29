@@ -1,66 +1,61 @@
 ---
 title: "Checkpoint 1: EDA"
+subtitle: "By Arturo, Payson, and Victoria"
 format: revealjs
 editor: visual
 ---
 
 ## Does healthcare access affect the number of preventable hospital stays of certain racial groups at the county level?
 
-- Reduce preventable hospitalizations
-- Equitable resource allocation
-- Focus efforts where help is needed most
+**Why this matters:**
+
+-   Reduce preventable hospitalizations
+-   Equitable resource allocation
+-   Focus efforts where help is needed most
 
 ------------------------------------------------------------------------
 
-## Data
+## National Data
 
-**Source:**<br>
-2025 County Health Rankings Analytic Dataset
+**Source:**\
+County Health Rankings 2025
 
+**Raw Data:**
 
-**Variables of Interest:**\
-enter here
+-   County-level health outcomes(ex)
+-   Healthcare access variables(ex)
+-   Disaggregated by race
 
-**Preprocessing Highlights:**\
-enter here
+**Cleaned Data:**
 
-------------------------------------------------------------------------
-
-## EDA Plot 1: PCP Ratio vs Preventable Stays
-
-```{r}
-#source("payson_file.R")
-#print(map_inter)
-```
+-   Filtered and cleaned to complete observations
+-   Created "White Majority" vs. "Minority" indicator
 
 ------------------------------------------------------------------------
 
-## EDA Plot 2: Uninsured Rate vs Preventable Stays
+## enter title assertion here from graph
 
-```{r}
-# plot here 
-```
+load graph here
 
-------------------------------------------------------------------------
+## Regression Analysis of Racial Disparities in Preventable Hospital Stays
 
-## Methods (Planned)
+**Planned Approach:**\
+- Linear regression with interaction terms\
+- Outcome: Preventable hospital stays\
+- Predictors: Uninsured rate, provider ratio, race group
 
 **Modeling Strategy:**\
-- Use ....
-
-**Justification:**\
-- give reasons
+- Explore variable selection and regularization
 
 ------------------------------------------------------------------------
 
-## Plan of Action
+## Moving into modeling and interpretation
 
-\*\* Completed:\*\*\
-- Defined research question - Cleaned and preprocessed data - Created two EDA visualizations
+**Completed:**\
+- Defined research question\
+- Cleaned and preprocessed dataset\
+- Created initial EDA visualizations
 
-\*\* Next Steps:\*\*\
-- Build linear regression models with interaction terms\
-- Interpret race-specific associations\
-- Check model assumptions and fit\
-- Create tables/figures for final presentation\
-- Draft and revise final poster
+**Next Steps:**\
+- Fit regression models with race × access interactions\
+- Interpret disparities and validate model - Create visual summaries and poster
