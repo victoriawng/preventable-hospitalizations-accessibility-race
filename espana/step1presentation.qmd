@@ -17,14 +17,11 @@ editor: visual
 
 ## National Data
 
-**Source:**
-County Health Rankings 2025
+**Source:** County Health Rankings 2025
 
-**Variables of Interest:**
-- Preventable Hospital Stays, Primary Care Physician Ratio, Uninsured Rate - others things - County-level racial groupings (White Majority vs White Minority)
+**Variables of Interest:** - Preventable Hospital Stays, Primary Care Physician Ratio, Uninsured Rate - others things - County-level racial groupings (White Majority vs White Minority)
 
-**Preprocessing Highlights:**
-- explain how we did white majority vs minority
+**Preprocessing Highlights:** - explain how we did white majority vs minority
 
 **Raw Data:**
 
@@ -42,29 +39,32 @@ County Health Rankings 2025
 ## Preventable Hospitalizations by County
 
 ```{r}
+<<<<<<< HEAD
 source("Johanson/Interactive_Map_Code.R")
+=======
+
+>>>>>>> 7fa4e1dfb504d77fa540a814d1adfee08f7b7139
 ```
 
 ## Regression Analysis of Racial Disparities in Preventable Hospital Stays
 
 **Planned Approach:**
 
-- Linear regression with interaction terms
-- Outcome: Preventable hospital stays
-- Predictors: Uninsured rate, provider ratio, race group
-
-
+-   Linear regression with interaction terms
+-   Outcome: Preventable hospital stays
+-   Predictors: Uninsured rate, provider ratio, race group
 
 **Modeling Strategy:**
 
-- Explore variable selection and regularization
+-   Explore variable selection and regularization
 
 ------------------------------------------------------------------------
-## Moving into modeling and interpretation
 
+## Moving into modeling and interpretation
 
 **Completed:**
 
+<<<<<<< HEAD
 - Defined research question
 - Cleaned and preprocessed dataset
 - Created initial EDA visualizations
@@ -138,9 +138,16 @@ County Health Rankings 2025
 - Defined research question
 - Cleaned and preprocessed dataset
 - Created initial EDA visualizations
+=======
+-   Defined research question
+
+-   Cleaned and preprocessed dataset
+
+-   Created initial EDA visualizations
+>>>>>>> 7fa4e1dfb504d77fa540a814d1adfee08f7b7139
 
 **Next Steps:**
 
-- Fit regression models with race × access interactions
-- Interpret disparities and validate model
-- Create visual summaries and poster
+-   Fit regression models with race × access interactions
+-   Interpret disparities and validate model
+-   Create visual summaries and poster
