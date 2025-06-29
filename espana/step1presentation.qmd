@@ -13,7 +13,6 @@ editor: visual
 -   Equitable resource allocation
 -   Focus efforts where help is needed most
 
-<<<<<<< HEAD
 ## **Why It Matters:** 
 
 =======
@@ -24,7 +23,6 @@ editor: visual
 **Source:**\
 County Health Rankings 2025
 
-<<<<<<< HEAD
 **Variables of Interest:**\
 - Preventable Hospital Stays, Primary Care Physician Ratio, Uninsured Rate - others things - County-level racial groupings (White Majority vs White Minority)
 
