@@ -39,15 +39,19 @@ County Health Rankings 2025
 
 ------------------------------------------------------------------------
 
-## enter title assertion here from graph
+## Preventable Hospitalizations by County
 
 ```{r}
+source("Johanson/Interactive_Map_Code.R")
+
 #source("thescriptfile.r")
 #print(map)
 ```
+
 ## Regression Analysis of Racial Disparities in Preventable Hospital Stays
 
 **Planned Approach:**
+
 - Linear regression with interaction terms
 - Outcome: Preventable hospital stays
 - Predictors: Uninsured rate, provider ratio, race group
@@ -55,6 +59,7 @@ County Health Rankings 2025
 
 
 **Modeling Strategy:**
+
 - Explore variable selection and regularization
 
 ------------------------------------------------------------------------
