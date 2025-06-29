@@ -1,68 +1,65 @@
 ---
-title: "Checkpoint 1 Presentation"
+title: "Checkpoint 1: EDA"
+subtitle: "By Arturo, Payson, and Victoria"
 format: revealjs
 editor: visual
 ---
 
-## Preventable Hospital stays vary with healthcare access across racial groups
+## Does healthcare access affect the number of preventable hospital stays of certain racial groups at the county level?
 
-**Research Question:**\
-Does healthcare access affect the number of preventable hospital stays for different racial groups at the county level?
+**Why this matters:**
 
-**Why It Matters:**\
-- 
+-   Reduce preventable hospitalizations
+-   Equitable resource allocation
+-   Focus efforts where help is needed most
+
 ------------------------------------------------------------------------
 
-## Data
+## National Data
 
 **Source:**\
-- 2025 County Health Rankings Analytic Dataset
+County Health Rankings 2025
 
-**Variables of Interest:**\
-- Preventable Hospital Stays, Primary Care Physician Ratio, Uninsured Rate - others things 
-- County-level racial groupings (White Majority vs White Minority)
+**Raw Data:**
 
-**Preprocessing Highlights:**\
-- explain how we did white majority vs minority 
+-   County-level health outcomes(ex)
+-   Healthcare access variables(ex)
+-   Disaggregated by race
+
+**Cleaned Data:**
+
+-   Filtered and cleaned to complete observations
+-   Created "White Majority" vs. "Minority" indicator
 
 ------------------------------------------------------------------------
 
-## EDA Plot 1: PCP Ratio vs Preventable Stays
+## enter title assertion here from graph
 
 ```{r}
-# plot here  
+#source("thescriptfile.r")
+#print(map)
 ```
+## Regression Analysis of Racial Disparities in Preventable Hospital Stays
+
+**Planned Approach:**
+- Linear regression with interaction terms\
+- Outcome: Preventable hospital stays\
+- Predictors: Uninsured rate, provider ratio, race group
+
+**Modeling Strategy:**
+- Explore variable selection and regularization
 
 ------------------------------------------------------------------------
 
-## EDA Plot 2: Uninsured Rate vs Preventable Stays
+## Moving into modeling and interpretation
 
-```{r}
-# plot here 
-```
+**Completed:**
 
-------------------------------------------------------------------------
-
-## Methods (Planned)
-
-**Modeling Strategy:**\
-- Use ....
-
-**Justification:**\
-- give reasons 
-
-------------------------------------------------------------------------
-
-## Plan of Action
-
-\*\* Completed:\*\*\
 - Defined research question
-- Cleaned and preprocessed data
-- Created two EDA visualizations
+- Cleaned and preprocessed dataset
+- Created initial EDA visualizations
 
-\*\* Next Steps:\*\*\
-- Build linear regression models with interaction terms\
-- Interpret race-specific associations\
-- Check model assumptions and fit\
-- Create tables/figures for final presentation\
-- Draft and revise final poster
+**Next Steps:**
+
+- Fit regression models with race × access interactions
+- Interpret disparities and validate model - Create visual summaries and poster
