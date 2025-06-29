@@ -13,25 +13,13 @@ editor: visual
 -   Equitable resource allocation
 -   Focus efforts where help is needed most
 
-<<<<<<< HEAD
-## **Why It Matters:** 
-
-=======
->>>>>>> 7ee0a101efb53b4520a6b63566b9fd4e4ad4fa0e
 ------------------------------------------------------------------------
 
 ## National Data
 
-**Source:**\
+**Source:**
 County Health Rankings 2025
 
-<<<<<<< HEAD
-**Variables of Interest:**\
-- Preventable Hospital Stays, Primary Care Physician Ratio, Uninsured Rate - others things - County-level racial groupings (White Majority vs White Minority)
-
-**Preprocessing Highlights:**\
-- explain how we did white majority vs minority
-=======
 **Raw Data:**
 
 -   County-level health outcomes(ex)
@@ -42,7 +30,6 @@ County Health Rankings 2025
 
 -   Filtered and cleaned to complete observations
 -   Created "White Majority" vs. "Minority" indicator
->>>>>>> 7ee0a101efb53b4520a6b63566b9fd4e4ad4fa0e
 
 ------------------------------------------------------------------------
 
@@ -52,37 +39,30 @@ County Health Rankings 2025
 source("Interactive_Map_Code.R")
 m
 ```
+
 ## Regression Analysis of Racial Disparities in Preventable Hospital Stays
 
-**Planned Approach:**\
-- Linear regression with interaction terms\
-- Outcome: Preventable hospital stays\
+**Planned Approach:**
+
+- Linear regression with interaction terms
+- Outcome: Preventable hospital stays
 - Predictors: Uninsured rate, provider ratio, race group
 
-**Modeling Strategy:**\
-<<<<<<< HEAD
-- Use ....
+**Modeling Strategy:**
 
-**Justification:**\
-- give reasons
-=======
 - Explore variable selection and regularization
->>>>>>> 7ee0a101efb53b4520a6b63566b9fd4e4ad4fa0e
 
 ------------------------------------------------------------------------
-
 ## Moving into modeling and interpretation
 
-<<<<<<< HEAD
-\*\* Completed:\*\*\
-- Defined research question - Cleaned and preprocessed data - Created two EDA visualizations
-=======
-**Completed:**\
-- Defined research question\
-- Cleaned and preprocessed dataset\
-- Created initial EDA visualizations
->>>>>>> 7ee0a101efb53b4520a6b63566b9fd4e4ad4fa0e
+**Completed:**
 
-**Next Steps:**\
-- Fit regression models with race × access interactions\
-- Interpret disparities and validate model - Create visual summaries and poster
+- Defined research question
+- Cleaned and preprocessed dataset
+- Created initial EDA visualizations
+
+**Next Steps:**
+
+- Fit regression models with race × access interactions
+- Interpret disparities and validate model
+- Create visual summaries and poster
