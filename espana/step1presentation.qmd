@@ -43,9 +43,6 @@ County Health Rankings 2025
 
 ```{r}
 source("Johanson/Interactive_Map_Code.R")
-
-#source("thescriptfile.r")
-#print(map)
 ```
 
 ## Regression Analysis of Racial Disparities in Preventable Hospital Stays
@@ -70,7 +67,76 @@ source("Johanson/Interactive_Map_Code.R")
 
 - Defined research question
 - Cleaned and preprocessed dataset
+- Created initial EDA visualizations
 
+**Next Steps:**
+
+- Fit regression models with race × access interactions
+- Interpret disparities and validate model
+- Create visual summaries and poster
+
+#########################
+---
+title: "Checkpoint 1: EDA"
+subtitle: "By Arturo, Payson, and Victoria"
+format: revealjs
+editor: visual
+---
+
+## Does healthcare access affect the number of preventable hospital stays of certain racial groups at the county level?
+
+**Why this matters:**
+
+-   Reduce preventable hospitalizations
+-   Equitable resource allocation
+-   Focus efforts where help is needed most
+
+------------------------------------------------------------------------
+
+## National Data
+
+**Source:**
+County Health Rankings 2025
+
+**Raw Data:**
+
+-   County-level health outcomes(ex)
+-   Healthcare access variables(ex)
+-   Disaggregated by race
+
+**Cleaned Data:**
+
+-   Filtered and cleaned to complete observations
+-   Created "White Majority" vs. "Minority" indicator
+
+------------------------------------------------------------------------
+
+## enter title assertion here from graph
+
+```{r}
+#source("thescriptfile.r")
+#print(map)
+```
+
+## Regression Analysis of Racial Disparities in Preventable Hospital Stays
+
+**Planned Approach:**
+
+- Linear regression with interaction terms
+- Outcome: Preventable hospital stays
+- Predictors: Uninsured rate, provider ratio, race group
+
+**Modeling Strategy:**
+
+- Explore variable selection and regularization
+
+------------------------------------------------------------------------
+## Moving into modeling and interpretation
+
+**Completed:**
+
+- Defined research question
+- Cleaned and preprocessed dataset
 - Created initial EDA visualizations
 
 **Next Steps:**

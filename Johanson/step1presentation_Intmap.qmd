@@ -2,6 +2,7 @@
 title: "Checkpoint 1: EDA"
 subtitle: "By Arturo, Payson, and Victoria"
 format: revealjs
+slide-number: true
 editor: visual
 ---
 
