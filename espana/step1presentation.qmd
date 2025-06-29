@@ -13,10 +13,9 @@ editor: visual
 -   Equitable resource allocation
 -   Focus efforts where help is needed most
 
-## **Why It Matters:** 
+## **Why It Matters:**
 
-=======
-------------------------------------------------------------------------
+## =======
 
 ## National Data
 
@@ -27,9 +26,7 @@ County Health Rankings 2025
 - Preventable Hospital Stays, Primary Care Physician Ratio, Uninsured Rate - others things - County-level racial groupings (White Majority vs White Minority)
 
 **Preprocessing Highlights:**\
-- explain how we did white majority vs minority
-=======
-**Raw Data:**
+- explain how we did white majority vs minority ======= **Raw Data:**
 
 -   County-level health outcomes(ex)
 -   Healthcare access variables(ex)
@@ -57,18 +54,14 @@ load graph here
 - Use ....
 
 **Justification:**\
-- give reasons
-=======
-- Explore variable selection and regularization
+- give reasons ======= - Explore variable selection and regularization
 
 ------------------------------------------------------------------------
 
 ## Moving into modeling and interpretation
 
 \*\* Completed:\*\*\
-- Defined research question - Cleaned and preprocessed data - Created two EDA visualizations
-=======
-**Completed:**\
+- Defined research question - Cleaned and preprocessed data - Created two EDA visualizations ======= **Completed:**\
 - Defined research question\
 - Cleaned and preprocessed dataset\
 - Created initial EDA visualizations
