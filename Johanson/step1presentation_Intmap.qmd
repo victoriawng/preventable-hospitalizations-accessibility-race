@@ -18,8 +18,7 @@ editor: visual
 
 ## National Data
 
-**Source:**
-County Health Rankings 2025
+**Source:** County Health Rankings 2025
 
 **Raw Data:**
 
@@ -45,25 +44,26 @@ m
 
 **Planned Approach:**
 
-- Linear regression with interaction terms
-- Outcome: Preventable hospital stays
-- Predictors: Uninsured rate, provider ratio, race group
+-   Linear regression with interaction terms
+-   Outcome: Preventable hospital stays
+-   Predictors: Uninsured rate, provider ratio, race group
 
 **Modeling Strategy:**
 
-- Explore variable selection and regularization
+-   Explore variable selection and regularization
 
 ------------------------------------------------------------------------
+
 ## Moving into modeling and interpretation
 
 **Completed:**
 
-- Defined research question
-- Cleaned and preprocessed dataset
-- Created initial EDA visualizations
+-   Defined research question
+-   Cleaned and preprocessed dataset
+-   Created initial EDA visualizations
 
 **Next Steps:**
 
-- Fit regression models with race × access interactions
-- Interpret disparities and validate model
-- Create visual summaries and poster
+-   Fit regression models with race × access interactions
+-   Interpret disparities and validate model
+-   Create visual summaries and poster
