@@ -61,6 +61,6 @@ m
 
 **Next Steps:**
 
--   Fit regression models with race × access interactions
+-   Fit regression models
 -   Interpret disparities and validate model
 -   Create visual summaries and poster
