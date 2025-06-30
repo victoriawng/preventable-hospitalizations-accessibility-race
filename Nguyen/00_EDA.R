@@ -54,7 +54,7 @@ data_dict_2025 = read_excel("data/DataDictionary_2025.xlsx")
 
 # understanding RAW data set
 
-view(national_data)
+# view(national_data)
 view(trend_data)
 view(data_dict_2025)
 
