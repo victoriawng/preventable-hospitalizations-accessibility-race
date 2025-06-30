@@ -16,20 +16,18 @@ editor: visual
 
 ------------------------------------------------------------------------
 
-## National Data
+## Data Overview
 
-**Source:** County Health Rankings 2025
+**Source: County Health Rankings 2025**
 
-**Raw Data:**
+- “Ranks every county in each state on their Health Outcomes and Health Factors”
 
--   County-level health outcomes(ex)
--   Healthcare access variables(ex)
--   Disaggregated by race
+**Clinical Care**
 
-**Cleaned Data:**
-
--   Filtered and cleaned to complete observations
--   Created "White Majority" vs. "Minority" indicator
+- Preventable Hospital Stays (outpatient setting)
+  - Providers (Primary Care, Physicans, Mental Health, Dentist)
+  - Mammography Screening
+  - Uninsured (Adults, Children)
 
 ------------------------------------------------------------------------
 
