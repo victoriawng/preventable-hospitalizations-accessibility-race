@@ -42,7 +42,6 @@ m
 
 **Planned Approach:**
 
--   Linear regression with interaction terms
 -   Outcome: Preventable hospital stays
 -   Predictors: Uninsured rate, provider ratio, race group
 
