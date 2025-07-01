@@ -6,7 +6,7 @@ slide-number: true
 editor: visual
 ---
 
-## Does healthcare access affect the number of preventable hospital stays of certain racial groups at the county level?
+## Does healthcare access impact the number of preventable hospital stays of certain racial groups at the county level?
 
 **Why this matters:**
 
