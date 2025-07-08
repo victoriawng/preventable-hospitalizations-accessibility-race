@@ -16,21 +16,18 @@ editor: visual
 
 ------------------------------------------------------------------------
 
-## National Data
+## Data Overview
 
-**Source:**
-County Health Rankings 2025
+**Source: County Health Rankings 2025**
 
-**Raw Data:**
+- “Ranks every county in each state on their Health Outcomes and Health Factors”
 
--   County-level health outcomes(ex)
--   Healthcare access variables(ex)
--   Disaggregated by race
+**Clinical Care**
 
-**Cleaned Data:**
-
--   Filtered and cleaned to complete observations
--   Created "White Majority" vs. "Minority" indicator
+- Preventable Hospital Stays (outpatient setting)
+  - Providers (Primary Care, Physicans, Mental Health, Dentist)
+  - Mammography Screening
+  - Uninsured (Adults, Children)
 
 ------------------------------------------------------------------------
 
@@ -38,32 +35,31 @@ County Health Rankings 2025
 
 ```{r, echo=FALSE}
 source("Interactive_Map_Code.R")
-m
 ```
 
 ## Regression Analysis of Racial Disparities in Preventable Hospital Stays
 
 **Planned Approach:**
 
-- Linear regression with interaction terms
-- Outcome: Preventable hospital stays
-- Predictors: Uninsured rate, provider ratio, race group
+-   Outcome: Preventable hospital stays
+-   Predictors: Uninsured rate, provider ratio, race group
 
 **Modeling Strategy:**
 
-- Explore variable selection and regularization
+-   Explore variable selection and regularization
 
 ------------------------------------------------------------------------
+
 ## Moving into modeling and interpretation
 
 **Completed:**
 
-- Defined research question
-- Cleaned and preprocessed dataset
-- Created initial EDA visualizations
+-   Defined research question
+-   Cleaned and preprocessed dataset
+-   Created initial EDA visualizations
 
 **Next Steps:**
 
-- Fit regression models with race × access interactions
-- Interpret disparities and validate model
-- Create visual summaries and poster
+-   Fit regression models
+-   Interpret disparities and validate model
+-   Create visual summaries and poster
