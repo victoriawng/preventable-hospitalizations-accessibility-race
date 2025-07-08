@@ -79,6 +79,12 @@ class(data_dict_2025) # "tbl_df"     "tbl"        "data.frame"
 str(national_data)
 sapply(national_data, class) 
 
+
+# to see column names
+colnames(national_data)
+# filter 
+chr_other = colnames(national_data)[!grepl("ci|raw|numerator|denominator|race", colnames(national_data))]
+
 # for csv
 # notice how we will prob need to change chr to corresponding data type (exp: chr to int in order for us to plot)
 # it is all chr bc we read it in that way
@@ -103,7 +109,6 @@ head(national_data)
 
 # for quantitative variables
 # summary()
-summary()
 
 # for categorical variables 
 # table()

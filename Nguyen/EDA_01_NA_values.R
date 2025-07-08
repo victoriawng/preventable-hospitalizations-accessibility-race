@@ -6,6 +6,7 @@ library(visdat)
 national_skim = skim(national_data)
 view(national_skim)
 
+# view(glimpse(national_data)) # shows same thing as view(national_data)
 
 
 # missing values ---------------------------------------------------------------
@@ -51,7 +52,7 @@ missing_less40 = na_perc |>
   arrange(desc(complete_rate))
 view(missing_less40)
 
-class(missing_40plus)
+class(missing_40plus) 
 
 
 # --------------- missing 40% plus of data in a column
@@ -65,7 +66,9 @@ no_ci_denom_num_missing40plus = missing_40plus_description |>
            !grepl("numerator", skim_variable) &
            !grepl("denominator", skim_variable))
 view(no_ci_denom_num_missing40plus)
-
+*
+  
+  
 
 # nrow(missing_40plus_description) #442
 # nrow(no_ci_denom_num_missing40plus) #108

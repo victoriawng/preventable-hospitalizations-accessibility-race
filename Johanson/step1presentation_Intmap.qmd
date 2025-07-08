@@ -6,7 +6,7 @@ slide-number: true
 editor: visual
 ---
 
-## Does healthcare access affect the number of preventable hospital stays of certain racial groups at the county level?
+## Does healthcare access impact the number of preventable hospital stays of certain racial groups at the county level?
 
 **Why this matters:**
 
@@ -20,6 +20,7 @@ editor: visual
 
 **Source: County Health Rankings 2025**
 
+<<<<<<< HEAD
 - “Ranks every county in each state on their Health Outcomes and Health Factors”
 
 **Clinical Care**
@@ -28,6 +29,16 @@ editor: visual
   - Providers (Primary Care, Physicans, Mental Health, Dentist)
   - Mammography Screening
   - Uninsured (Adults, Children)
+=======
+-   “Ranks every county in each state on their Health Outcomes and Health Factors”
+
+**Clinical Care**
+
+-   Preventable Hospital Stays (outpatient setting)
+    -   Providers (Primary Care, Physicans, Mental Health, Dentist)
+    -   Mammography Screening
+    -   Uninsured (Adults, Children)
+>>>>>>> 5546ef360ae741f9db4efff46ce7486dfa44a236
 
 ------------------------------------------------------------------------
 
@@ -62,4 +73,8 @@ source("Interactive_Map_Code.R")
 
 -   Fit regression models
 -   Interpret disparities and validate model
+<<<<<<< HEAD
 -   Create visual summaries and poster
+=======
+-   Create visual summaries and poster
+>>>>>>> 5546ef360ae741f9db4efff46ce7486dfa44a236

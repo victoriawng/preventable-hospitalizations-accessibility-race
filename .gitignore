@@ -6,3 +6,5 @@ data/
 data_SAS/
 .RDataTmp*
 .DS_Store
+*.html
+*_files/
