@@ -1,6 +1,3 @@
-source("EDA_import.R")
-
-
 #Run at start
 library(tidyverse)
 library(naniar)
@@ -26,11 +23,6 @@ clean_names_national_data_subset <- clean_names_national_data |>
     name,
     county_fips_code,
     flu_vaccinations_raw_value,
-    flu_vaccinations_aian,
-    flu_vaccinations_asian_pacific_islander,
-    flu_vaccinations_black,
-    flu_vaccinations_hispanic,
-    flu_vaccinations_white,
     primary_care_physicians_raw_value,
     ratio_of_population_to_primary_care_physicians,
     mental_health_providers_raw_value,
@@ -38,17 +30,7 @@ clean_names_national_data_subset <- clean_names_national_data |>
     dentists_raw_value,
     ratio_of_population_to_dentists,
     preventable_hospital_stays_raw_value,
-    preventable_hospital_stays_aian,
-    preventable_hospital_stays_asian_pacific_islander,
-    preventable_hospital_stays_black,
-    preventable_hospital_stays_hispanic,
-    preventable_hospital_stays_white,
     mammography_screening_raw_value,
-    mammography_screening_aian,
-    mammography_screening_asian_pacific_islander,
-    mammography_screening_black,
-    mammography_screening_hispanic,
-    mammography_screening_white,
     uninsured_raw_value,
     uninsured_adults_raw_value,
     severe_housing_problems_raw_value,
@@ -59,11 +41,6 @@ clean_names_national_data_subset <- clean_names_national_data |>
     some_college_raw_value,
     high_school_completion_raw_value,
     children_in_poverty_raw_value,
-    children_in_poverty_aian,
-    children_in_poverty_asian_pacific_islander,
-    children_in_poverty_black,
-    children_in_poverty_hispanic,
-    children_in_poverty_white,
     child_care_cost_burden_raw_value,
     child_care_centers_raw_value,
     frequent_physical_distress_raw_value,
@@ -72,13 +49,6 @@ clean_names_national_data_subset <- clean_names_national_data |>
     food_insecurity_raw_value,
     insufficient_sleep_raw_value,
     teen_births_raw_value,
-    teen_births_aian,
-    teen_births_asian,
-    teen_births_black,
-    teen_births_hispanic,
-    teen_births_white,
-    teen_births_nhopi,
-    teen_births_two_or_more_races,
     excessive_drinking_raw_value,
     adult_smoking_raw_value,
     adult_obesity_raw_value,
@@ -94,17 +64,7 @@ clean_names_national_data_subset <- clean_names_national_data |>
     census_participation_raw_value,
     high_school_graduation_raw_value,
     reading_scores_raw_value,
-    reading_scores_aian,
-    reading_scores_asian_pacific_islander,
-    reading_scores_black,
-    reading_scores_hispanic,
-    reading_scores_white,
     math_scores_raw_value,
-    math_scores_aian,
-    math_scores_asian_pacific_islander,
-    math_scores_black,
-    math_scores_hispanic,
-    math_scores_white,
     living_wage_raw_value,
     residential_segregation_black_white_raw_value,
     disconnected_youth_raw_value,
@@ -144,9 +104,6 @@ clean_names_national_subset_counties[cols_to_convert] <- lapply(
     as.numeric(x)
   }
 )
-
-#Replace NA values with 0 (DON'T RUN IF WANT TO USE MISSING VALUE PLOTS)
-clean_names_national_subset_counties[is.na(clean_names_national_subset_counties)] <- 0
 
 
 ##TO VIEW MISSING VALUES
@@ -233,6 +190,47 @@ leaflet(map_data) |>
   )
 
 
+poisson_model <- glm(
+  preventable_hospital_stays_raw_value ~ uninsured_raw_value + ratio_of_population_to_primary_care_physicians
+  + ratio_of_population_to_mental_health_providers + percent_disability_functional_limitations_raw_value
+  + ratio_of_population_to_dentists + percent_rural_raw_value + broadband_access_raw_value
+  + percent_65_and_older_raw_value + ratio_of_population_to_primary_care_providers_other_than_physicians,
+  family = poisson(link = "log"),
+  data = clean_names_national_subset_counties,
+  na.action = na.exclude
+)
+
+library(broom)
 
 
+tidy(poisson_model)
 
+library(mgcv)
+
+library(mgcv)
+
+gam_model <- gam(
+  preventable_hospital_stays_raw_value ~ 
+    s(uninsured_raw_value) +
+    s(ratio_of_population_to_primary_care_physicians) +
+    s(percent_65_and_older_raw_value) +
+    s(percent_female_raw_value) +
+    s(percent_american_indian_or_alaska_native_raw_value) +
+    s(percent_asian_raw_value) +
+    s(percent_hispanic_raw_value) +
+    s(percent_native_hawaiian_or_other_pacific_islander_raw_value) +
+    s(percent_non_hispanic_black_raw_value) +
+    s(percent_non_hispanic_white_raw_value) +
+    s(percent_not_proficient_in_english_raw_value) +
+    s(percent_rural_raw_value) +
+    s(high_school_graduation_raw_value) +
+    s(broadband_access_raw_value) +
+    s(library_access_raw_value) +
+    offset(log(population_raw_value)),
+  family = poisson(link = "log"),
+  data = clean_names_national_subset_counties,
+  na.action = na.exclude
+)
+
+
+plot(gam_model, pages = 1, shade = TRUE)
