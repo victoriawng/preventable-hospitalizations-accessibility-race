@@ -3,7 +3,7 @@ race = national_data |>
          contains(c("v051", "v054", "v055", "v056", "v080", "v081", "v126")))
 race = race |>
   select(!contains(c("cilow", "cihigh", "v051_num", "v051_denom")))
-view(race)
+# view(race)
 
 # omitted county_clustered
 race_rawvalue = race |>
@@ -18,6 +18,7 @@ view(race_rawvalue)
 # little to no missing values :D
 # view(skim(race)|>
 #        arrange(complete_rate))
+
 # v051: Population - Resident population
 # v054: % Non-Hispanic Black - Percentage of population identifying as non-Hispanic Black or African American.
 # v055: % American Indian or Alaska Native - Percentage of population identifying as American Indian or Alaska Native.
@@ -29,12 +30,33 @@ view(race_rawvalue)
 # returning largest 
 
 # library(dplyr)
-# Select only the race percentage columns
+# create chracter vector of only the race percentage/rawvalue columns
 race_rawvalue_cols = grep("rawvalue", colnames(race_rawvalue), value = TRUE)
+race_rawvalue_cols
 # the following was accident and made df instead of character string
 # race_rawvalue_cols  = race_rawvalue |>
 #   select(contains(c("v051", "v054", "v055", "v056", "v080", "v081", "v126")))
 # view(race_rawvalue_cols)
+
+
+race_lookup <- c(
+  "v126" = "Non-Hispanic White",
+  "v054" = "Non-Hispanic Black",
+  "v081" = "Asian",
+  "v056" = "Hispanic ",
+  "v055" = "American Indian or Alaska Native",
+  "v080" = "Native Hawaiian or Other Pacific Islander"
+)
+
+
+# function to extract v### and map to name
+get_race_label <- function(column_name) {
+  code <- sub("^(v[0-9]+).*", "\\1", column_name)      # extract v###
+  race_lookup[[code]] %||% NA_character_           # return mapped name or NA
+}
+
+
+
 
 
 # both rowwise() and ungroup() play key roles in row-by-row calculations in dplyr
@@ -58,37 +80,22 @@ race_biggest_smallest <- race_rawvalue %>%
   rowwise() %>%
   mutate(
     largest_race   = race_rawvalue_cols[which.max(c_across(all_of(race_rawvalue_cols)))],
+    largest_race_label = get_race_label(largest_race),
     largest_pct    = max(c_across(all_of(race_rawvalue_cols))),
+    
+    
     smallest_race  = race_rawvalue_cols[which.min(c_across(all_of(race_rawvalue_cols)))],
+    smallest_race_label = get_race_label(smallest_race),
     smallest_pct   = min(c_across(all_of(race_rawvalue_cols)))
   ) %>%
   ungroup()
+view(race_biggest_smallest)
+
+race_biggest_smallest <- race_biggest_smallest %>%
+  mutate(race_name = race_lookup[as.character(largest_race, smallest_race)])
 
 view(race_biggest_smallest)
 
-# Remove rows where all columns are NA
-df_cleaned <- df[rowSums(is.na(df)) != ncol(df), ]
-
-
-# race_rawvalue[318,] # missing data in CT
-
-vis_miss(race_rawvalue)
-
-
-race_biggest_smallest = race_rawvalue |>
-rowwise() |>
-    mutate(
-      largest_race = race_rawvalue_cols[which.max(c_across(all_of(race_rawvalue)))])|>
-  ungroup()
-
-race_rawvalue_cols
-,
-      largest_pct = max(c_across(all_of(race_rawvalue_cols))),
-      smallest_race = race_rawvalue_cols[which.min(c_across(all_of(race_rawvalue_cols)))],
-      smallest_pct = min(c_across(all_of(race_rawvalue_cols)))
-    ) |>
-  ungroup()
-view
 
 
 # -----------------------------------------------------------------------------------------------------------
