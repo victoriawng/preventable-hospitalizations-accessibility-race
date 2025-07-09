@@ -1,0 +1,13 @@
+---
+title: "Checkpoint 2"
+author: "Victoria, Payson, Arturo"
+format: revealjs
+---
+
+## Does healthcare access impact the number of preventable hospital stays of certain racial groups at the county level?
+
+**Why this matters:**
+
+- Reduce preventable hospitalizations
+- Equitable resource allocation
+- Focus efforts where help is vital
