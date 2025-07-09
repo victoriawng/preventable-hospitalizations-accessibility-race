@@ -1,3 +1,5 @@
+# also selecting columns with our picked features (clinic healthcare)
+# plus its race parameters ofc
 race = national_data |> 
   select(statecode, countycode, fipscode, state, county, county_clustered,
          contains(c("v051", "v054", "v055", "v056", "v080", "v081", "v126")))
@@ -5,6 +7,7 @@ race = race |>
   select(!contains(c("cilow", "cihigh", "v051_num", "v051_denom")))
 # view(race)
 
+# grabbing only rawvalues, dropping denom, numerator, etc
 # omitted county_clustered
 race_rawvalue = race |>
   select(statecode, countycode, fipscode, state, county,
@@ -13,7 +16,7 @@ race_rawvalue = race |>
 race_rawvalue = race_rawvalue |>
   select(statecode, countycode, fipscode, state, county,
          !contains(c("v051")))
-view(race_rawvalue)
+# view(race_rawvalue)
 
 # little to no missing values :D
 # view(skim(race)|>
@@ -96,15 +99,23 @@ race_biggest_smallest <- race_biggest_smallest %>%
 
 view(race_biggest_smallest)
 
+race_biggest_smallest |>
+  ggplot( aes(x = largest_race_label)) +
+  geom_bar() + 
+  coord_flip()
+
 
 
 # -----------------------------------------------------------------------------------------------------------
 # make sure to run EDA_clinicalcare.R for this code to work
+# clinical care and race variables
 clinical_care_race = clinical_care_no_ci |>
   select(!contains(c("rawvalue", "numerator", "denominator", "other")))
 view(clinical_care_race)
+
 # to see missing values
 vis_miss(clinical_care_race)
+
 # to see percentage of missing values in each column ---
 # look at complete rate
 # or create a variable to see better
@@ -113,4 +124,9 @@ clinical_care_race_skim = skim(clinical_care_race) |>
   arrange(complete_rate)
 
 view(clinical_care_race_skim)
+
+clinical_care_race_NA = clinical_care_race_skim |>
+  select(skim_variable, n_missing, complete_rate)
+view(clinical_care_race_NA)
+
 
