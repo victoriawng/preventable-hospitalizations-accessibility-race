@@ -1,3 +1,6 @@
+library(skimr)
+library(visdat)
+
 # also selecting columns with our picked features (clinic healthcare)
 # plus its race parameters ofc
 race = national_data |> 
@@ -93,40 +96,39 @@ race_biggest_smallest <- race_rawvalue %>%
   ) %>%
   ungroup()
 view(race_biggest_smallest)
+# race_biggest_smallest <- race_biggest_smallest %>%
+#   mutate(race_name = race_lookup[as.character(largest_race, smallest_race)])
+# view(race_biggest_smallest)
 
-race_biggest_smallest <- race_biggest_smallest %>%
-  mutate(race_name = race_lookup[as.character(largest_race, smallest_race)])
 
-view(race_biggest_smallest)
+race_largest = race_biggest_smallest |>
+  select(statecode, countycode, fipscode, state, county,
+         contains(c("largest"))) |>
+  arrange(desc(largest_pct))
+view(race_largest)
+
+race_largest_noWhite = race_largest |>
+  filter(largest_race_label != "Non-Hispanic White")
+view(race_largest_noWhite)
+
+race_smallest = race_biggest_smallest |>
+  select(statecode, countycode, fipscode, state, county,
+         contains(c("smallest"))) |>
+  arrange(desc(smallest_pct))
+view(race_smallest)
+
+
 
 race_biggest_smallest |>
-  ggplot( aes(x = largest_race_label)) +
+  ggplot(aes(x = largest_race_label)) +
+  geom_bar() + 
+  coord_flip()
+
+race_biggest_smallest |>
+  ggplot(aes(x = smallest_race_label)) +
   geom_bar() + 
   coord_flip()
 
 
 
-# -----------------------------------------------------------------------------------------------------------
-# make sure to run EDA_clinicalcare.R for this code to work
-# clinical care and race variables
-clinical_care_race = clinical_care_no_ci |>
-  select(!contains(c("rawvalue", "numerator", "denominator", "other")))
-view(clinical_care_race)
-
-# to see missing values
-vis_miss(clinical_care_race)
-
-# to see percentage of missing values in each column ---
-# look at complete rate
-# or create a variable to see better
-skim(clinical_care_race)
-clinical_care_race_skim = skim(clinical_care_race) |>
-  arrange(complete_rate)
-
-view(clinical_care_race_skim)
-
-clinical_care_race_NA = clinical_care_race_skim |>
-  select(skim_variable, n_missing, complete_rate)
-view(clinical_care_race_NA)
-
-
+            

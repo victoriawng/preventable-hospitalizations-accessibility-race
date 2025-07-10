@@ -27,20 +27,24 @@ subset_data <- national_data |>
     pct_native = percent_american_indian_or_alaska_native_raw_value,
     pct_asian = percent_asian_raw_value,
     pct_islander = percent_native_hawaiian_or_other_pacific_islander_raw_value,
-    population = population_raw_value
+    population = population_raw_value,
+    mental = mental_health_providers_raw_value,
+    dentists = dentists_raw_value,
+    otherproviders = other_primary_care_providers_raw_value,
+    flu = flu_vaccinations_raw_value
   ) |>
   mutate(
     across(
       c(preventable_stays, uninsured, primary_care, mammogram,
-        broadband, pct_white, pct_black, pct_hispanic, pct_native, pct_asian, pct_islander, population),
+        broadband, pct_white, pct_black, pct_hispanic, pct_native, pct_asian, pct_islander, population, mental, dentists, otherproviders, flu),
       as.numeric
     ),
     log_population = log(population)
   ) |>
-
+  
   drop_na(
     preventable_stays, uninsured, primary_care, mammogram,
-    broadband, pct_white, pct_black, pct_hispanic, pct_native, pct_asian, pct_islander, log_population
+    broadband, pct_white, pct_black, pct_hispanic, pct_native, pct_asian, pct_islander, log_population, mental, dentists, otherproviders, flu
   )
 
 subset_data |>
@@ -188,9 +192,8 @@ ggplot(subset_data, aes(x = log_population, y = log_preventable)) +
 # multicollenarity 
 subset_data %>% 
   dplyr::select(
-    uninsured, primary_care, mammogram, broadband,
-    pct_white, pct_black, pct_hispanic, pct_native,
-    pct_asian, pct_islander, log_population
+    preventable_stays, uninsured, primary_care, mammogram,
+    broadband, pct_white, pct_black, pct_hispanic, pct_native, pct_asian, pct_islander, log_population, mental, dentists, otherproviders, flu
   ) %>% 
   str()  # Inspect structure
 cor_matrix <- cor(subset_data %>% dplyr::select(
@@ -200,23 +203,64 @@ cor_matrix <- cor(subset_data %>% dplyr::select(
 ))
 cor_matrix
 # pctwhite and pctblack : -0.61
-# white and hispanc: -0.62
+# white and Hispanic: -0.62
 #black and white = -0.61
+
+
 # fitting model
+# Include in model: log(uninsured)
+# pimary_care, mammogram, quadratic fit for broadband (y~polu(x,2)  
+# include mental health providers, densitsts, other primary care providers, flu vaccinations, broadband  
+
+uninsured_linerity <- ggplot(subset_data, aes(x = (log(mental)+1), y = log_preventable)) +
+  geom_point() +  
+  geom_smooth(method = "loess", se = FALSE, color = "red") +  
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +    
+  labs(title = "mental vs. Log(Preventable Stays + 1)",
+       x = "mental", y = "Log(Preventable Stays + 1)")
+uninsured_linerity
+
+uninsured_linerity <- ggplot(subset_data, aes(x = flu, y = log_preventable)) +
+  geom_point() +  
+  geom_smooth(method = "loess", se = FALSE, color = "red") +  
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +    
+  labs(title = "flu vs. Log(Preventable Stays + 1)",
+       x = "flus", y = "Log(Preventable Stays + 1)")
+uninsured_linerity
+
+# use log(uninsured_linerity) + 1 , log(dentists) +1, log(otherproviders) + 1), flu
 
 library(MASS)
+# Rescale problematic predictors (divide by 100 or 1000)
 
-nb_model <- glm.nb(
+#model_data <- subset_data %>%
+#  mutate(across(c(dentists, otherproviders, primary_care), ~ .x/1000)
+
+
+final_model <- glm.nb(
   preventable_stays ~ 
-    log(uninsured + 1) +                         
-    primary_care +                      
-    mammogram + 
-    poly(broadband, 2) +                         
-    log_population,
+    log(uninsured + 1) +          
+    log(dentists + 1) +           
+    log(otherproviders + 1) +    
+    flu +                         
+    poly(broadband, 2) +          
+    log(mental + 1) +             
+    primary_care +                
+    mammogram,       
   data = subset_data
 )
 
-summary(nb_model)
+summary(final_model)
+
+plot(fitted(final_model), residuals(final_model, type = "pearson"),
+     main = "Residuals vs Fitted")
+abline(h = 0,col = "red")
+
+qqnorm(residuals(final_model, type = "pearson"))
+qqline(residuals(final_model, type = "pearson"))
+
+plot(cooks.distance(final_model), type = "h",
+     main = "Cook's Distance")
 
 
 
