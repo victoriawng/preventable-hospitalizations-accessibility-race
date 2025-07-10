@@ -12,11 +12,11 @@ library(tigris)
 national_data <- read_csv("data/analytic_data2025_v2.csv")
 
 #Clean names
-clean_names_national_data <- national_data |> 
+cn_national_data <- national_data |> 
   clean_names()
 
 #Subset variables of interest
-clean_names_national_data_subset <- clean_names_national_data |> 
+clean_names_national_data_subset <- cn_national_data |> 
   select(
     state_fips_code,
     state_abbreviation,
@@ -204,5 +204,27 @@ library(broom)
 
 
 tidy(poisson_model)
+
+cn_counties_race_data <- clean_names_national_subset_counties |>
+  select(state_abbreviation, name, fips, percent_asian_raw_value, percent_american_indian_or_alaska_native_raw_value,
+         percent_hispanic_raw_value, percent_non_hispanic_black_raw_value, percent_non_hispanic_white_raw_value,
+         percent_native_hawaiian_or_other_pacific_islander_raw_value, preventable_hospital_stays_raw_value, percent_disability_functional_limitations_raw_value,
+         high_school_completion_raw_value)
+  
+
+with(cn_counties_race_data, 
+     cor(percent_asian_raw_value,
+         preventable_hospital_stays_raw_value))
+
+with(cn_counties_race_data, 
+     cor(percent_non_hispanic_black_raw_value,
+         preventable_hospital_stays_raw_value))
+
+with(cn_counties_race_data, 
+     cor(percent_non_hispanic_white_raw_value,
+         preventable_hospital_stays_raw_value))
+
+with(clean_names_national_subset_counties, 
+     cor(high_school_completion_raw_value, preventable_hospital_stays_raw_value, use = "complete.obs"))
 
 
