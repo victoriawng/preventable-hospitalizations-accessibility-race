@@ -11,3 +11,9 @@ format: revealjs
 - Reduce preventable hospitalizations
 - Equitable resource allocation
 - Focus efforts where help is vital
+
+---
+
+## Data Overview
+
+**Source: County Health Rankings 2025**

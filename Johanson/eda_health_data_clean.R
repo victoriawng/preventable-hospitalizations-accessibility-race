@@ -205,32 +205,4 @@ library(broom)
 
 tidy(poisson_model)
 
-library(mgcv)
 
-library(mgcv)
-
-gam_model <- gam(
-  preventable_hospital_stays_raw_value ~ 
-    s(uninsured_raw_value) +
-    s(ratio_of_population_to_primary_care_physicians) +
-    s(percent_65_and_older_raw_value) +
-    s(percent_female_raw_value) +
-    s(percent_american_indian_or_alaska_native_raw_value) +
-    s(percent_asian_raw_value) +
-    s(percent_hispanic_raw_value) +
-    s(percent_native_hawaiian_or_other_pacific_islander_raw_value) +
-    s(percent_non_hispanic_black_raw_value) +
-    s(percent_non_hispanic_white_raw_value) +
-    s(percent_not_proficient_in_english_raw_value) +
-    s(percent_rural_raw_value) +
-    s(high_school_graduation_raw_value) +
-    s(broadband_access_raw_value) +
-    s(library_access_raw_value) +
-    offset(log(population_raw_value)),
-  family = poisson(link = "log"),
-  data = clean_names_national_subset_counties,
-  na.action = na.exclude
-)
-
-
-plot(gam_model, pages = 1, shade = TRUE)

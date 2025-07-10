@@ -122,7 +122,7 @@ pal <- colorNumeric(
   na.color = "gray90"
 )
 
-leaflet(map_data) |> 
+m <- leaflet(map_data) |> 
   addProviderTiles("CartoDB.Positron") |>  
   addPolygons(
     fillColor = ~pal(preventable_hospital_stays_raw_value),
@@ -148,7 +148,3 @@ leaflet(map_data) |>
     position = "bottomright"
   )
 
-
-clean_names_national_subset_counties |> 
-  select(name, preventable_hospital_stays_raw_value, fips, state_abbreviation, population_raw_value) |> 
-  view()
