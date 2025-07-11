@@ -233,21 +233,29 @@ uninsured_linerity
 library(MASS)
 # Rescale problematic predictors (divide by 100 or 1000)
 
-#model_data <- subset_data %>%
-#  mutate(across(c(dentists, otherproviders, primary_care), ~ .x/1000)
+
+model_data <- subset_data |>
+  mutate(
+    dentists = dentists/1000,
+    otherproviders = otherproviders/1000,
+    primary_care = primary_care/1000,
+    log_uninsured = log(uninsured + 1),
+    log_dentists = log(dentists + 1),
+    log_otherproviders = log(otherproviders + 1),
+    log_mental = log(mental + 1)
+  )
 
 
 final_model <- glm.nb(
   preventable_stays ~ 
-    log(uninsured + 1) +          
-    log(dentists + 1) +           
-    log(otherproviders + 1) +    
-    flu +                         
+    log_uninsured +          
+    log_dentists  +           
+    log_otherproviders +    
     poly(broadband, 2) +          
-    log(mental + 1) +             
+    log_mental  +             
     primary_care +                
     mammogram,       
-  data = subset_data
+  data = model_data
 )
 
 summary(final_model)
