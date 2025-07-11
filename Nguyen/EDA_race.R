@@ -118,7 +118,26 @@ race_smallest = race_biggest_smallest |>
 view(race_smallest)
 
 
+# ----
+unique(race_largest_noWhite$largest_race_label)
 
+view(race_largest_noWhite |>
+  filter(largest_pct > .70))
+
+view(race_largest_noWhite |>
+       filter(largest_race_label == "Asian"))
+
+view(race_largest_noWhite |>
+       filter(largest_race_label == "Non-Hispanic Black" & largest_pct > .7))
+
+view(race_largest_noWhite |>
+       filter(largest_race_label == "Native Hawaiian or Other Pacific Islander"))
+
+view(race_largest_noWhite |>
+       filter(largest_race_label == "American Indian or Alaska Native"))
+
+
+# graphs -----------------------------------------------------------------------
 race_biggest_smallest |>
   ggplot(aes(x = largest_race_label)) +
   geom_bar() + 

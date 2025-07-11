@@ -1,6 +1,7 @@
 # install and run packages -----------------------------------------------------
 
 library(readxl)
+library(dplyr)
 library(tidyverse)
 # install.packages("haven")
 library(haven)
@@ -84,6 +85,9 @@ sapply(national_data, class)
 colnames(national_data)
 # filter 
 chr_other = colnames(national_data)[!grepl("ci|raw|numerator|denominator|race", colnames(national_data))]
+
+# to see variables of a column
+# unique(race_largest_noWhite$largest_race_label)
 
 # for csv
 # notice how we will prob need to change chr to corresponding data type (exp: chr to int in order for us to plot)
