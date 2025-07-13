@@ -8,6 +8,8 @@ library(stringr)
 library(scales)
 library(leaflet)
 library(tigris)
+library(glmmTMB)
+library(broom)
 
 national_data <- read_csv("data/analytic_data2025_v2.csv")
 
@@ -263,3 +265,42 @@ racial_makeup <- cn_counties_national_subset |>
 cn_counties_national_subset <- cn_counties_national_subset |> 
   left_join(racial_makeup, by = c("state_fips_code", "county_fips_code"))
 
+predict_cn_subset <- cn_counties_national_subset |> 
+  select(state_abbreviation, name, preventable_hospital_stays_raw_value,
+         uninsured_raw_value, dentists_raw_value, other_primary_care_providers_raw_value,
+         broadband_access_raw_value, mental_health_providers_raw_value,
+         primary_care_physicians_raw_value, mammography_screening_raw_value,
+         severe_housing_problems_raw_value, high_school_completion_raw_value,
+         percent_disability_functional_limitations_raw_value, percent_not_proficient_in_english_raw_value,
+         percent_rural_raw_value, racial_makeup)
+
+#Negative Binomial + Random Effects
+nb_model <- glmmTMB(
+  preventable_hospital_stays_raw_value ~ uninsured_raw_value + dentists_raw_value 
+  + other_primary_care_providers_raw_value + broadband_access_raw_value
+  + mental_health_providers_raw_value + primary_care_physicians_raw_value
+  + mammography_screening_raw_value + severe_housing_problems_raw_value
+  + high_school_completion_raw_value + percent_disability_functional_limitations_raw_value
+  + percent_not_proficient_in_english_raw_value + percent_rural_raw_value
+  + (1 | racial_makeup),
+  family = nbinom2,
+  data = predict_cn_subset
+)
+
+summary(nb_model)
+
+library(car)
+
+vif(lm(preventable_hospital_stays_raw_value ~ 
+         uninsured_raw_value + dentists_raw_value +
+         other_primary_care_providers_raw_value +
+         broadband_access_raw_value +
+         mental_health_providers_raw_value +
+         primary_care_physicians_raw_value +
+         mammography_screening_raw_value +
+         severe_housing_problems_raw_value +
+         high_school_completion_raw_value +
+         percent_disability_functional_limitations_raw_value +
+         percent_not_proficient_in_english_raw_value +
+         percent_rural_raw_value,
+       data = predict_cn_subset))
