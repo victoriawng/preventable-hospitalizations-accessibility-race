@@ -8,7 +8,7 @@ race = national_data |>
          contains(c("v051", "v054", "v055", "v056", "v080", "v081", "v126")))
 race = race |>
   select(!contains(c("cilow", "cihigh", "v051_num", "v051_denom")))
-# view(race)
+view(race)
 
 # grabbing only rawvalues, dropping denom, numerator, etc
 # omitted county_clustered
@@ -19,7 +19,7 @@ race_rawvalue = race |>
 race_rawvalue = race_rawvalue |>
   select(statecode, countycode, fipscode, state, county,
          !contains(c("v051")))
-# view(race_rawvalue)
+view(race_rawvalue)
 
 # little to no missing values :D
 # view(skim(race)|>

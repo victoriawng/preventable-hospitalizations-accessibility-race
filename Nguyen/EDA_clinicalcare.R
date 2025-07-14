@@ -1,5 +1,5 @@
-state_county_labels = national_data |>
-  select(statecode, countycode, fipscode, state, county) # didn't include county_clustered
+# state_county_labels = national_data |>
+#   select(statecode, countycode, fipscode, state, county) # didn't include county_clustered
 # view(state_county_labels)
 # county_clustered # included or not in health groups, whatever that is
 # county_clustered = 1 #
