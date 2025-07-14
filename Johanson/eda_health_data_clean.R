@@ -224,6 +224,7 @@ with(clean_names_national_subset_counties,
 with(clean_names_national_subset_counties, 
      cor(severe_housing_cost_burden_raw_value, preventable_hospital_stays_raw_value, use = "complete.obs"))
 
+?cor
 #Race Data
 
 cn_counties_race_data <- clean_names_national_subset_counties |>
@@ -274,6 +275,18 @@ predict_cn_subset <- cn_counties_national_subset |>
          percent_disability_functional_limitations_raw_value, percent_not_proficient_in_english_raw_value,
          percent_rural_raw_value, racial_makeup)
 
+predict_cn_subset_ratios <- cn_counties_national_subset |> 
+  select(state_abbreviation, name, ratio_of_population_to_primary_care_physicians, preventable_hospital_stays_raw_value,
+         uninsured_raw_value, ratio_of_population_to_mental_health_providers, ratio_of_population_to_primary_care_providers_other_than_physicians,
+         broadband_access_raw_value, ratio_of_population_to_dentists,
+         primary_care_physicians_raw_value, mammography_screening_raw_value,
+         severe_housing_problems_raw_value, high_school_completion_raw_value,
+         percent_disability_functional_limitations_raw_value, percent_not_proficient_in_english_raw_value,
+         percent_rural_raw_value, racial_makeup)
+
+with(predict_cn_subset_ratios, 
+     cor(ratio_of_population_to_primary_care_physicians, preventable_hospital_stays_raw_value, use = "complete.obs"))
+
 #Negative Binomial + Random Effects
 nb_model <- glmmTMB(
   preventable_hospital_stays_raw_value ~ uninsured_raw_value + dentists_raw_value 
@@ -287,7 +300,22 @@ nb_model <- glmmTMB(
   data = predict_cn_subset
 )
 
-summary(nb_model)
+predict_cn_subset_ratios <- na.omit(predict_cn_subset_ratios)
+
+
+nb_model_ratios <- glmmTMB(
+  preventable_hospital_stays_raw_value ~ uninsured_raw_value + ratio_of_population_to_dentists 
+  + ratio_of_population_to_primary_care_providers_other_than_physicians + broadband_access_raw_value
+  + ratio_of_population_to_mental_health_providers + ratio_of_population_to_primary_care_physicians
+  + mammography_screening_raw_value + severe_housing_problems_raw_value
+  + high_school_completion_raw_value + percent_disability_functional_limitations_raw_value
+  + percent_not_proficient_in_english_raw_value + percent_rural_raw_value
+  + (1 | racial_makeup),
+  family = nbinom2,
+  data = predict_cn_subset_ratios
+)
+
+summary(nb_model_ratios)
 
 library(car)
 
@@ -304,3 +332,22 @@ vif(lm(preventable_hospital_stays_raw_value ~
          percent_not_proficient_in_english_raw_value +
          percent_rural_raw_value,
        data = predict_cn_subset))
+
+
+vif(lm(
+  preventable_hospital_stays_raw_value ~ 
+    uninsured_raw_value +
+    ratio_of_population_to_dentists +
+    ratio_of_population_to_primary_care_providers_other_than_physicians +
+    broadband_access_raw_value +
+    ratio_of_population_to_mental_health_providers +
+    ratio_of_population_to_primary_care_physicians +
+    mammography_screening_raw_value +
+    severe_housing_problems_raw_value +
+    high_school_completion_raw_value +
+    percent_disability_functional_limitations_raw_value +
+    percent_not_proficient_in_english_raw_value +
+    percent_rural_raw_value,
+  data = predict_cn_subset_ratios
+))
+
