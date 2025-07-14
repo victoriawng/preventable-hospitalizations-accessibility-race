@@ -8,6 +8,8 @@ library(stringr)
 library(scales)
 library(leaflet)
 library(tigris)
+library(glmmTMB)
+library(broom)
 
 national_data <- read_csv("data/analytic_data2025_v2.csv")
 
@@ -16,7 +18,7 @@ cn_national_data <- national_data |>
   clean_names()
 
 #Subset variables of interest
-clean_names_national_data_subset <- cn_national_data |> 
+cn_national_data_subset <- cn_national_data |> 
   select(
     state_fips_code,
     state_abbreviation,
@@ -87,17 +89,17 @@ clean_names_national_data_subset <- cn_national_data |>
   )
 
 ##CLEAN DATA SET
-clean_names_national_subset_counties <- clean_names_national_data_subset |> 
+cn_counties_national_subset <- cn_national_data_subset |> 
   filter(str_detect(name, "County|Municipality|Census|Borough|Region|District|Parish|city"))
 
 char_cols <- c("state_abbreviation", "name")
 
 
-cols_to_convert <- setdiff(names(clean_names_national_subset_counties), char_cols)
+cols_to_convert <- setdiff(names(cn_counties_national_subset), char_cols)
 
 
-clean_names_national_subset_counties[cols_to_convert] <- lapply(
-  clean_names_national_subset_counties[cols_to_convert],
+cn_counties_national_subset[cols_to_convert] <- lapply(
+  cn_counties_national_subset[cols_to_convert],
   function(x) {
     x <- as.character(x)
     x[x %in% c("NA", "", "N/A", "*", "Suppressed")] <- NA
@@ -107,14 +109,14 @@ clean_names_national_subset_counties[cols_to_convert] <- lapply(
 
 
 ##TO VIEW MISSING VALUES
-vars <- colnames(clean_names_national_subset_counties)
+vars <- colnames(cn_counties_national_subset)
 
 var_groups <- split(vars, cut(seq_along(vars), 4, labels = FALSE))
 
 for (i in 1:4) {
   
   
-  data_subset <- clean_names_national_subset_counties[, var_groups[[i]]]
+  data_subset <- cn_counties_national_subset[, var_groups[[i]]]
   
   
   print(gg_miss_var(data_subset) + ggtitle(paste("Missingness - Group", i)))
@@ -141,9 +143,7 @@ options(tigris_use_cache = TRUE)
 # Get shapefile for all US counties
 counties_sf <- counties(cb = TRUE, year = 2023, class = "sf")
 
-?counties
-
-clean_names_national_subset_counties <- clean_names_national_subset_counties |> 
+cn_counties_national_subset <- cn_counties_national_subset |> 
   mutate(
     state_fips_code = str_pad(state_fips_code, 2, pad = "0"),
     county_fips_code = str_pad(county_fips_code, 3, pad = "0"),
@@ -151,7 +151,7 @@ clean_names_national_subset_counties <- clean_names_national_subset_counties |>
   )
 
 map_data <- counties_sf |> 
-  left_join(clean_names_national_subset_counties, by = c("GEOID" = "fips"))
+  left_join(cn_counties_national_subset, by = c("GEOID" = "fips"))
 
 #Interactive US County Map
 
@@ -189,6 +189,7 @@ leaflet(map_data) |>
     position = "bottomright"
   )
 
+#Early Modeling
 
 poisson_model <- glm(
   preventable_hospital_stays_raw_value ~ uninsured_raw_value + ratio_of_population_to_primary_care_physicians
@@ -200,17 +201,10 @@ poisson_model <- glm(
   na.action = na.exclude
 )
 
-library(broom)
-
-
 tidy(poisson_model)
 
-cn_counties_race_data <- clean_names_national_subset_counties |>
-  select(state_abbreviation, name, fips, percent_asian_raw_value, percent_american_indian_or_alaska_native_raw_value,
-         percent_hispanic_raw_value, percent_non_hispanic_black_raw_value, percent_non_hispanic_white_raw_value,
-         percent_native_hawaiian_or_other_pacific_islander_raw_value, preventable_hospital_stays_raw_value, percent_disability_functional_limitations_raw_value,
-         high_school_completion_raw_value)
-  
+
+#Correlations
 
 with(cn_counties_race_data, 
      cor(percent_asian_raw_value,
@@ -227,4 +221,86 @@ with(cn_counties_race_data,
 with(clean_names_national_subset_counties, 
      cor(high_school_completion_raw_value, preventable_hospital_stays_raw_value, use = "complete.obs"))
 
+with(clean_names_national_subset_counties, 
+     cor(severe_housing_cost_burden_raw_value, preventable_hospital_stays_raw_value, use = "complete.obs"))
 
+#Race Data
+
+cn_counties_race_data <- clean_names_national_subset_counties |>
+  select(state_abbreviation, name, fips, percent_asian_raw_value, percent_american_indian_or_alaska_native_raw_value,
+         percent_hispanic_raw_value, percent_non_hispanic_black_raw_value, percent_non_hispanic_white_raw_value,
+         percent_native_hawaiian_or_other_pacific_islander_raw_value, preventable_hospital_stays_raw_value, percent_disability_functional_limitations_raw_value,
+         high_school_completion_raw_value)
+
+race_cols <- c(
+  "percent_american_indian_or_alaska_native_raw_value",
+  "percent_asian_raw_value",
+  "percent_hispanic_raw_value",
+  "percent_native_hawaiian_or_other_pacific_islander_raw_value",
+  "percent_non_hispanic_black_raw_value",
+  "percent_non_hispanic_white_raw_value"
+)
+
+racial_makeup <- cn_counties_national_subset |> 
+  pivot_longer(
+    cols = all_of(race_cols),
+    names_to = "race",
+    values_to = "percent"
+  ) |> 
+  group_by(state_fips_code, county_fips_code) |> 
+  arrange(state_fips_code, county_fips_code, desc(percent)) |> 
+  slice_head(n = 2) |> 
+  summarise(
+    racial_makeup = paste(
+      gsub(
+        "percent_|_raw_value", 
+        "", 
+        race
+      ),
+      collapse = ", "
+    ),
+    .groups = "drop"
+  )
+
+cn_counties_national_subset <- cn_counties_national_subset |> 
+  left_join(racial_makeup, by = c("state_fips_code", "county_fips_code"))
+
+predict_cn_subset <- cn_counties_national_subset |> 
+  select(state_abbreviation, name, preventable_hospital_stays_raw_value,
+         uninsured_raw_value, dentists_raw_value, other_primary_care_providers_raw_value,
+         broadband_access_raw_value, mental_health_providers_raw_value,
+         primary_care_physicians_raw_value, mammography_screening_raw_value,
+         severe_housing_problems_raw_value, high_school_completion_raw_value,
+         percent_disability_functional_limitations_raw_value, percent_not_proficient_in_english_raw_value,
+         percent_rural_raw_value, racial_makeup)
+
+#Negative Binomial + Random Effects
+nb_model <- glmmTMB(
+  preventable_hospital_stays_raw_value ~ uninsured_raw_value + dentists_raw_value 
+  + other_primary_care_providers_raw_value + broadband_access_raw_value
+  + mental_health_providers_raw_value + primary_care_physicians_raw_value
+  + mammography_screening_raw_value + severe_housing_problems_raw_value
+  + high_school_completion_raw_value + percent_disability_functional_limitations_raw_value
+  + percent_not_proficient_in_english_raw_value + percent_rural_raw_value
+  + (1 | racial_makeup),
+  family = nbinom2,
+  data = predict_cn_subset
+)
+
+summary(nb_model)
+
+library(car)
+
+vif(lm(preventable_hospital_stays_raw_value ~ 
+         uninsured_raw_value + dentists_raw_value +
+         other_primary_care_providers_raw_value +
+         broadband_access_raw_value +
+         mental_health_providers_raw_value +
+         primary_care_physicians_raw_value +
+         mammography_screening_raw_value +
+         severe_housing_problems_raw_value +
+         high_school_completion_raw_value +
+         percent_disability_functional_limitations_raw_value +
+         percent_not_proficient_in_english_raw_value +
+         percent_rural_raw_value,
+       data = predict_cn_subset))
