@@ -299,6 +299,7 @@ nb_model <- glmmTMB(
   family = nbinom2,
   data = predict_cn_subset
 )
+summary(nb_model)
 
 predict_cn_subset_ratios <- na.omit(predict_cn_subset_ratios)
 
@@ -351,3 +352,4 @@ vif(lm(
   data = predict_cn_subset_ratios
 ))
 
+?glmmTMB
