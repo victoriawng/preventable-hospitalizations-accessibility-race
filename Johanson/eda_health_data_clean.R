@@ -10,6 +10,7 @@ library(leaflet)
 library(tigris)
 library(glmmTMB)
 library(broom)
+library(glmmTMB)
 
 national_data <- read_csv("data/analytic_data2025_v2.csv")
 
@@ -124,9 +125,9 @@ for (i in 1:4) {
 
 
 #Scatter plot variable against preventable hospital stays
-clean_names_national_subset_counties |>
-  ggplot(aes(x = uninsured_raw_value,
-             y = preventable_hospital_stays_raw_value + 1)) + 
+predict_cn_subset_ratios |>
+  ggplot(aes(x = ratio_of_population_to_mental_health_providers,
+             y = preventable_hospital_stays_raw_value)) + 
   geom_point(alpha = 0.3, size = 1) +
   scale_y_log10() +
   scale_x_log10() +
@@ -285,7 +286,7 @@ predict_cn_subset_ratios <- cn_counties_national_subset |>
          percent_rural_raw_value, racial_makeup)
 
 with(predict_cn_subset_ratios, 
-     cor(ratio_of_population_to_primary_care_physicians, preventable_hospital_stays_raw_value, use = "complete.obs"))
+     cor(uninsured_raw_value, preventable_hospital_stays_raw_value, use = "complete.obs"))
 
 #Negative Binomial + Random Effects
 nb_model <- glmmTMB(
@@ -316,40 +317,34 @@ nb_model_ratios <- glmmTMB(
   data = predict_cn_subset_ratios
 )
 
-summary(nb_model_ratios)
-
-library(car)
-
-vif(lm(preventable_hospital_stays_raw_value ~ 
-         uninsured_raw_value + dentists_raw_value +
-         other_primary_care_providers_raw_value +
-         broadband_access_raw_value +
-         mental_health_providers_raw_value +
-         primary_care_physicians_raw_value +
-         mammography_screening_raw_value +
-         severe_housing_problems_raw_value +
-         high_school_completion_raw_value +
-         percent_disability_functional_limitations_raw_value +
-         percent_not_proficient_in_english_raw_value +
-         percent_rural_raw_value,
-       data = predict_cn_subset))
+quasi_model_ratios <- glm(preventable_hospital_stays_raw_value ~ uninsured_raw_value + ratio_of_population_to_dentists 
+                            + ratio_of_population_to_primary_care_providers_other_than_physicians + broadband_access_raw_value
+                            + ratio_of_population_to_mental_health_providers + ratio_of_population_to_primary_care_physicians
+                            + mammography_screening_raw_value + severe_housing_problems_raw_value
+                            + high_school_completion_raw_value + percent_disability_functional_limitations_raw_value
+                            + percent_not_proficient_in_english_raw_value + percent_rural_raw_value,
+                            family = quasipoisson(link = "log"),
+                            data = predict_cn_subset_ratios)
 
 
-vif(lm(
-  preventable_hospital_stays_raw_value ~ 
-    uninsured_raw_value +
-    ratio_of_population_to_dentists +
-    ratio_of_population_to_primary_care_providers_other_than_physicians +
-    broadband_access_raw_value +
-    ratio_of_population_to_mental_health_providers +
-    ratio_of_population_to_primary_care_physicians +
-    mammography_screening_raw_value +
-    severe_housing_problems_raw_value +
-    high_school_completion_raw_value +
-    percent_disability_functional_limitations_raw_value +
-    percent_not_proficient_in_english_raw_value +
-    percent_rural_raw_value,
-  data = predict_cn_subset_ratios
-))
+poisson_model_ratios <- glm(preventable_hospital_stays_raw_value ~ uninsured_raw_value + ratio_of_population_to_dentists 
+                          + ratio_of_population_to_primary_care_providers_other_than_physicians + broadband_access_raw_value
+                          + ratio_of_population_to_mental_health_providers + ratio_of_population_to_primary_care_physicians
+                          + mammography_screening_raw_value + severe_housing_problems_raw_value
+                          + high_school_completion_raw_value + percent_disability_functional_limitations_raw_value
+                          + percent_not_proficient_in_english_raw_value + percent_rural_raw_value,
+                          family = poisson(link = "log"),
+                          data = predict_cn_subset_ratios)
 
 ?glmmTMB
+
+summary(poisson_model_ratios)
+
+summary(quasi_model_ratios)
+
+summary(nb_model_ratios)
+
+with(predict_cn_subset_ratios,
+     cor(uninsured_raw_value, preventable_hospital_stays_raw_value)
+
+     
