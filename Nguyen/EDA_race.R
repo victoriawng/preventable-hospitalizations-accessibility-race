@@ -8,7 +8,7 @@ race = national_data |>
          contains(c("v051", "v054", "v055", "v056", "v080", "v081", "v126")))
 race = race |>
   select(!contains(c("cilow", "cihigh", "v051_num", "v051_denom")))
-# view(race)
+view(race)
 
 # grabbing only rawvalues, dropping denom, numerator, etc
 # omitted county_clustered
@@ -19,7 +19,7 @@ race_rawvalue = race |>
 race_rawvalue = race_rawvalue |>
   select(statecode, countycode, fipscode, state, county,
          !contains(c("v051")))
-# view(race_rawvalue)
+view(race_rawvalue)
 
 # little to no missing values :D
 # view(skim(race)|>
@@ -118,7 +118,26 @@ race_smallest = race_biggest_smallest |>
 view(race_smallest)
 
 
+# ----
+unique(race_largest_noWhite$largest_race_label)
 
+view(race_largest_noWhite |>
+  filter(largest_pct > .70))
+
+view(race_largest_noWhite |>
+       filter(largest_race_label == "Asian"))
+
+view(race_largest_noWhite |>
+       filter(largest_race_label == "Non-Hispanic Black" & largest_pct > .7))
+
+view(race_largest_noWhite |>
+       filter(largest_race_label == "Native Hawaiian or Other Pacific Islander"))
+
+view(race_largest_noWhite |>
+       filter(largest_race_label == "American Indian or Alaska Native"))
+
+
+# graphs -----------------------------------------------------------------------
 race_biggest_smallest |>
   ggplot(aes(x = largest_race_label)) +
   geom_bar() + 
