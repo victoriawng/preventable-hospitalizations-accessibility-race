@@ -13,7 +13,9 @@ library(broom)
 library(glmmTMB)
 library(car)
 
-national_data <- read_csv("data/analytic_data2025_v2.csv")
+county_data <- read_csv("data/analytic_data2025_v2.csv") #FOR RUNNING ARTURO MODELS
+
+national_data <- read_csv("data/analytic_data2025_v2.csv") #FOR RUNNING THIS FILE
 
 #Clean names
 cn_national_data <- national_data |> 
@@ -112,7 +114,7 @@ cn_counties_national_subset[cols_to_convert] <- lapply(
 )
 
 
-##TO VIEW MISSING VALUES
+##TO VIEW MISSING VALUES (IGNORE)
 vars <- colnames(cn_counties_national_subset)
 
 var_groups <- split(vars, cut(seq_along(vars), 4, labels = FALSE))
@@ -237,7 +239,7 @@ cn_counties_race_data <- clean_names_national_subset_counties |>
          percent_native_hawaiian_or_other_pacific_islander_raw_value, preventable_hospital_stays_raw_value, percent_disability_functional_limitations_raw_value,
          high_school_completion_raw_value)
 
-race_cols <- c(
+race_cols <- c( #RUN THIS
   "percent_american_indian_or_alaska_native_raw_value",
   "percent_asian_raw_value",
   "percent_hispanic_raw_value",
@@ -246,7 +248,7 @@ race_cols <- c(
   "percent_non_hispanic_white_raw_value"
 )
 
-racial_makeup <- cn_counties_national_subset |> 
+racial_makeup <- cn_counties_national_subset |> #RUN THIS
   pivot_longer(
     cols = all_of(race_cols),
     names_to = "race",
@@ -267,10 +269,10 @@ racial_makeup <- cn_counties_national_subset |>
     .groups = "drop"
   )
 
-cn_counties_national_subset <- cn_counties_national_subset |> 
+cn_counties_national_subset <- cn_counties_national_subset |>  #RUN THIS
   left_join(racial_makeup, by = c("state_fips_code", "county_fips_code"))
 
-predict_cn_subset <- cn_counties_national_subset |> 
+predict_cn_subset <- cn_counties_national_subset |> #DONT RUN
   select(state_abbreviation, name, preventable_hospital_stays_raw_value,
          uninsured_raw_value, dentists_raw_value, other_primary_care_providers_raw_value,
          broadband_access_raw_value, mental_health_providers_raw_value,
@@ -279,7 +281,7 @@ predict_cn_subset <- cn_counties_national_subset |>
          percent_disability_functional_limitations_raw_value, percent_not_proficient_in_english_raw_value,
          percent_rural_raw_value, racial_makeup, income_inequality_raw_value, median_household_income_raw_value)
 
-predict_cn_subset_ratios <- cn_counties_national_subset |> 
+predict_cn_subset_ratios <- cn_counties_national_subset |> #RUN THIS
   select(state_abbreviation, name, ratio_of_population_to_primary_care_physicians, preventable_hospital_stays_raw_value,
          uninsured_raw_value, ratio_of_population_to_mental_health_providers, ratio_of_population_to_primary_care_providers_other_than_physicians,
          broadband_access_raw_value, ratio_of_population_to_dentists,
@@ -291,7 +293,7 @@ predict_cn_subset_ratios <- cn_counties_national_subset |>
 with(predict_cn_subset_ratios, 
      cor(uninsured_raw_value, preventable_hospital_stays_raw_value, use = "complete.obs"))
 
-#Negative Binomial + Random Effects
+#Negative Binomial + Random Effects (DONT RUN)
 nb_model <- glmmTMB(
   preventable_hospital_stays_raw_value ~ uninsured_raw_value + dentists_raw_value 
   + other_primary_care_providers_raw_value + broadband_access_raw_value
@@ -299,74 +301,96 @@ nb_model <- glmmTMB(
   + mammography_screening_raw_value + severe_housing_problems_raw_value
   + high_school_completion_raw_value + percent_disability_functional_limitations_raw_value
   + percent_not_proficient_in_english_raw_value + percent_rural_raw_value + income_inequality_raw_value
-  + median_household_income_raw_value
   + (1 | racial_makeup),
   family = nbinom2,
   data = predict_cn_subset
 )
 
+
+
 summary(nb_model)
 
-predict_cn_subset_ratios <- na.omit(predict_cn_subset_ratios)
+predict_cn_subset_ratios <- na.omit(predict_cn_subset_ratios) #RUN THIS
 
 
-nb_model_ratios <- glmmTMB(
+nb_model_ratios <- glmmTMB( #RUN THIS
   preventable_hospital_stays_raw_value ~ uninsured_raw_value + ratio_of_population_to_dentists 
   + ratio_of_population_to_primary_care_providers_other_than_physicians + broadband_access_raw_value
   + ratio_of_population_to_mental_health_providers + ratio_of_population_to_primary_care_physicians
   + mammography_screening_raw_value + severe_housing_problems_raw_value
   + high_school_completion_raw_value + percent_disability_functional_limitations_raw_value
   + percent_not_proficient_in_english_raw_value + percent_rural_raw_value + income_inequality_raw_value
-  + median_household_income_raw_value
   + (1 | racial_makeup),
   family = nbinom2,
   data = predict_cn_subset_ratios
 )
 
-quasi_model_ratios <- glm(preventable_hospital_stays_raw_value ~ uninsured_raw_value + ratio_of_population_to_dentists 
-                            + ratio_of_population_to_primary_care_providers_other_than_physicians + broadband_access_raw_value
-                            + ratio_of_population_to_mental_health_providers + ratio_of_population_to_primary_care_physicians
-                            + mammography_screening_raw_value + severe_housing_problems_raw_value
-                            + high_school_completion_raw_value + percent_disability_functional_limitations_raw_value
-                            + percent_not_proficient_in_english_raw_value + percent_rural_raw_value,
-                            family = quasipoisson(link = "log"),
-                            data = predict_cn_subset_ratios)
 
 
-poisson_model_ratios <- glm(preventable_hospital_stays_raw_value ~ uninsured_raw_value + ratio_of_population_to_dentists 
-                          + ratio_of_population_to_primary_care_providers_other_than_physicians + broadband_access_raw_value
-                          + ratio_of_population_to_mental_health_providers + ratio_of_population_to_primary_care_physicians
-                          + mammography_screening_raw_value + severe_housing_problems_raw_value
-                          + high_school_completion_raw_value + percent_disability_functional_limitations_raw_value
-                          + percent_not_proficient_in_english_raw_value + percent_rural_raw_value,
-                          family = poisson(link = "log"),
-                          data = predict_cn_subset_ratios)
-
-?glmmTMB
-
-summary(poisson_model_ratios)
-
-summary(quasi_model_ratios)
-
-summary(nb_model_ratios)
+summary(nb_model_ratios) #RUN THIS
 
 
-vif(lm(
-  preventable_hospital_stays_raw_value ~ 
-    uninsured_raw_value +
-    ratio_of_population_to_dentists +
-    ratio_of_population_to_primary_care_providers_other_than_physicians +
-    broadband_access_raw_value +
-    ratio_of_population_to_mental_health_providers +
-    ratio_of_population_to_primary_care_physicians +
-    mammography_screening_raw_value +
-    severe_housing_problems_raw_value +
-    high_school_completion_raw_value +
-    percent_disability_functional_limitations_raw_value +
-    percent_not_proficient_in_english_raw_value +
-    percent_rural_raw_value,
-  data = predict_cn_subset_ratios
-))
 
 
-     
+#NB RATIOS MODEL IN TABLE
+variables <- c(
+  "(Intercept)",
+  "uninsured_raw_value",
+  "ratio_of_population_to_dentists",
+  "ratio_of_population_to_primary_care_providers_other_than_physicians",
+  "broadband_access_raw_value",
+  "ratio_of_population_to_mental_health_providers",
+  "ratio_of_population_to_primary_care_physicians",
+  "mammography_screening_raw_value",
+  "severe_housing_problems_raw_value",
+  "high_school_completion_raw_value",
+  "percent_disability_functional_limitations_raw_value",
+  "percent_not_proficient_in_english_raw_value",
+  "percent_rural_raw_value",
+  "income_inequality_raw_value"
+)
+
+estimates <- c(
+  8.789e+00,
+  -5.897e-01,
+  9.159e-06,
+  -1.112e-05,
+  1.127e-01,
+  1.262e-01,
+  -2.435e-01,
+  -3.637e-01,
+  -1.277e+00,
+  3.114e-01,
+  1.608e+00,
+  -4.789e-01,
+  -1.311e-01,
+  2.644e-01
+)
+
+pvalues <- c(
+  "< 2e-16",
+  0.001502,
+  0.004750,
+  0.070087,
+  0.481642,
+  0.022216,
+  0.430034,
+  0.000413,
+  9.79e-09,
+  4.41e-07,
+  1.90e-16,
+  0.284340,
+  4.70e-06,
+  0.017167
+)
+
+exp_estimates <- exp(estimates)
+
+results_df <- data.frame(
+  Variable = variables,
+  exp_Coefficient = round(exp_estimates, 4),
+  p_value = pvalues
+)
+
+print(results_df)
+

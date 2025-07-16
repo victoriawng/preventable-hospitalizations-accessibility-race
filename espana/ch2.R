@@ -8,6 +8,8 @@ library(tidyverse)
 library(MASS)
 library(patchwork)
 
+county_data <- read_csv("/data/analytic_data2025_v2.csv")
+
 # Step 1: Construct cleaned dataset from County Health Rankings
 eda_data <- county_data %>%
   transmute(
