@@ -11,6 +11,7 @@ library(tigris)
 library(glmmTMB)
 library(broom)
 library(glmmTMB)
+library(car)
 
 national_data <- read_csv("data/analytic_data2025_v2.csv")
 
@@ -86,7 +87,9 @@ cn_national_data_subset <- cn_national_data |>
     percent_disability_functional_limitations_raw_value,
     percent_not_proficient_in_english_raw_value,
     percent_rural_raw_value,
-    children_eligible_for_free_or_reduced_price_lunch_raw_value
+    children_eligible_for_free_or_reduced_price_lunch_raw_value,
+    median_household_income_raw_value,
+    income_inequality_raw_value
   )
 
 ##CLEAN DATA SET
@@ -274,7 +277,7 @@ predict_cn_subset <- cn_counties_national_subset |>
          primary_care_physicians_raw_value, mammography_screening_raw_value,
          severe_housing_problems_raw_value, high_school_completion_raw_value,
          percent_disability_functional_limitations_raw_value, percent_not_proficient_in_english_raw_value,
-         percent_rural_raw_value, racial_makeup)
+         percent_rural_raw_value, racial_makeup, income_inequality_raw_value, median_household_income_raw_value)
 
 predict_cn_subset_ratios <- cn_counties_national_subset |> 
   select(state_abbreviation, name, ratio_of_population_to_primary_care_physicians, preventable_hospital_stays_raw_value,
@@ -283,7 +286,7 @@ predict_cn_subset_ratios <- cn_counties_national_subset |>
          primary_care_physicians_raw_value, mammography_screening_raw_value,
          severe_housing_problems_raw_value, high_school_completion_raw_value,
          percent_disability_functional_limitations_raw_value, percent_not_proficient_in_english_raw_value,
-         percent_rural_raw_value, racial_makeup)
+         percent_rural_raw_value, racial_makeup, income_inequality_raw_value, median_household_income_raw_value)
 
 with(predict_cn_subset_ratios, 
      cor(uninsured_raw_value, preventable_hospital_stays_raw_value, use = "complete.obs"))
@@ -295,11 +298,13 @@ nb_model <- glmmTMB(
   + mental_health_providers_raw_value + primary_care_physicians_raw_value
   + mammography_screening_raw_value + severe_housing_problems_raw_value
   + high_school_completion_raw_value + percent_disability_functional_limitations_raw_value
-  + percent_not_proficient_in_english_raw_value + percent_rural_raw_value
+  + percent_not_proficient_in_english_raw_value + percent_rural_raw_value + income_inequality_raw_value
+  + median_household_income_raw_value
   + (1 | racial_makeup),
   family = nbinom2,
   data = predict_cn_subset
 )
+
 summary(nb_model)
 
 predict_cn_subset_ratios <- na.omit(predict_cn_subset_ratios)
@@ -311,7 +316,8 @@ nb_model_ratios <- glmmTMB(
   + ratio_of_population_to_mental_health_providers + ratio_of_population_to_primary_care_physicians
   + mammography_screening_raw_value + severe_housing_problems_raw_value
   + high_school_completion_raw_value + percent_disability_functional_limitations_raw_value
-  + percent_not_proficient_in_english_raw_value + percent_rural_raw_value
+  + percent_not_proficient_in_english_raw_value + percent_rural_raw_value + income_inequality_raw_value
+  + median_household_income_raw_value
   + (1 | racial_makeup),
   family = nbinom2,
   data = predict_cn_subset_ratios
@@ -344,7 +350,23 @@ summary(quasi_model_ratios)
 
 summary(nb_model_ratios)
 
-with(predict_cn_subset_ratios,
-     cor(uninsured_raw_value, preventable_hospital_stays_raw_value)
+
+vif(lm(
+  preventable_hospital_stays_raw_value ~ 
+    uninsured_raw_value +
+    ratio_of_population_to_dentists +
+    ratio_of_population_to_primary_care_providers_other_than_physicians +
+    broadband_access_raw_value +
+    ratio_of_population_to_mental_health_providers +
+    ratio_of_population_to_primary_care_physicians +
+    mammography_screening_raw_value +
+    severe_housing_problems_raw_value +
+    high_school_completion_raw_value +
+    percent_disability_functional_limitations_raw_value +
+    percent_not_proficient_in_english_raw_value +
+    percent_rural_raw_value,
+  data = predict_cn_subset_ratios
+))
+
 
      
