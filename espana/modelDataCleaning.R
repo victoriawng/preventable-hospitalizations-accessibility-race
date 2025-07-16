@@ -1,9 +1,43 @@
 library(tidyverse)
-library(readxl)
+library(sf)           
+library(spdep)        
+library(mgcv)         
+library(xgboost)      
+library(SHAPforxgboost) 
+library(mice)         
+library(patchwork)    
+library(ggdag)      
+library(MASS)
+library(broom)
+library(dplyr)
 source("EDA_import.R")
-#view(trend_data)
-#view(national_data)
-#colnames(national_data)
+
+
+## Data ##
+data <- national_data
+# Load required libraries
+library(tidyverse)
+library(MASS)  # For negative binomial regression
+library(broom)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ## make a subset ##
@@ -245,7 +279,8 @@ model_data <- subset_data |>
     log_mental = log(mental + 1)
   )
 
-
+# in include serv housing problems
+# look into multilevel modeling random effect modeling. 
 final_model <- glm.nb(
   preventable_stays ~ 
     log_uninsured +          
@@ -272,4 +307,46 @@ plot(cooks.distance(final_model), type = "h",
 
 
 
+# Prepare long-form data for racial group comparison
+library(tidyr)
+library(ggplot2)
 
+eda_long <- eda_data %>%
+  dplyr::select(uninsured, phs_white, phs_black) %>%
+  pivot_longer(
+    cols = starts_with("phs_"), 
+    names_to = "group", 
+    values_to = "phs"
+  ) %>%
+  mutate(
+    group = recode(
+      group,
+      "phs_white" = "White",
+      "phs_black" = "Black"
+    )
+  )
+
+# Plot with customized y-axis breaks
+ggplot(eda_long, aes(x = uninsured, y = phs, color = group)) +
+  geom_point(alpha = 0.4) +
+  geom_smooth(method = "lm", se = FALSE, size = 1.1) +
+  scale_color_manual(values = c("White" = "#3366CC", "Black" = "#CC0000")) +
+  scale_y_continuous(
+    trans = "log1p",
+    breaks = c(0, 100, 500, 1000, 5000, 10000, 20000, 40000, 60000),
+    labels = scales::comma,
+    limits = c(NA, max(eda_long$phs, na.rm = TRUE)) # Keep upper limit dynamic
+  ) +
+  labs(
+    x = "Uninsured Rate",
+    y = "Preventable Hospital Stays (log scale)",
+    color = "Racial Group",
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5),
+    axis.title = element_text(face = "bold"),
+    legend.position = "bottom",
+    panel.grid.minor = element_blank() # Cleaner look
+  )
