@@ -26,8 +26,9 @@ library(broom)
 
 
 
-
-
+# view(national_data)
+# national_data |>
+#   dplyr::select(`Uninsured Adults raw value`)
 
 
 
