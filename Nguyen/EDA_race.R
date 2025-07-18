@@ -119,22 +119,36 @@ view(race_smallest)
 
 
 # ----
+white_majority_70plus = (race_largest |>
+  filter(largest_race_label == "Non-Hispanic White", largest_pct > .70))
+view(white_majority_70plus)
+# ----
 unique(race_largest_noWhite$largest_race_label)
 
-view(race_largest_noWhite |>
-  filter(largest_pct > .70))
+race_largest_noWhite_70plus = race_largest_noWhite |>
+  filter(largest_pct > .70)
+view(race_largest_noWhite_70plus)
 
-view(race_largest_noWhite |>
-       filter(largest_race_label == "Asian"))
+# asian_majority_70plus = (race_largest_noWhite_70plus |>
+#        filter(largest_race_label == "Asian"))
+# view(asian_majority_70plus)
 
-view(race_largest_noWhite |>
-       filter(largest_race_label == "Non-Hispanic Black" & largest_pct > .7))
+black_majority_70plus = (race_largest_noWhite_70plus |>
+       filter(largest_race_label == "Non-Hispanic Black"))
+view(black_majority_70plus)
 
-view(race_largest_noWhite |>
-       filter(largest_race_label == "Native Hawaiian or Other Pacific Islander"))
+# hawaiian_majority_70plus = (race_largest_noWhite_70plus |>
+#       filter(largest_race_label == "Native Hawaiian or Other Pacific Islander"))
+# view(hawaiian_majority_70plus)
 
-view(race_largest_noWhite |>
+native_majority_70plus = (race_largest_noWhite_70plus |>
        filter(largest_race_label == "American Indian or Alaska Native"))
+view(native_majority_70plus)
+
+hispanic_majority_70plus = race_largest_noWhite_70plus |>
+  filter(largest_race_label == "Hispanic ")
+view(hispanic_majority_70plus)
+
 
 
 # graphs -----------------------------------------------------------------------

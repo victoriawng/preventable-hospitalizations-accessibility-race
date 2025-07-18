@@ -1,5 +1,6 @@
 library(skimr)
 library(visdat)
+# have not edit for no_states yet
 
 
 # to understand basic stats about data set
@@ -104,4 +105,5 @@ view(colSums(is.na(national_data)))
 # sapply(national_data, function(x) sum(is.na(x)))
 
 # row--------------------------------------------
-
+# return rows with NA values
+# your_df[!complete.cases(your_df), ]

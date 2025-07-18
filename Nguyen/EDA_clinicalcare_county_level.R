@@ -6,8 +6,11 @@
 # county_clustered = 0 # 
 # county_clustered = NA # this row is not a county (exp: data for entire state or country)
 
+no_states = national_data |>
+  filter(countycode != "000")
+view(no_states)
 
-clinical_care_all = national_data |>
+clinical_care_all = no_states |>
   select(statecode, countycode, fipscode, state, county, county_clustered,
          contains(c("v003", "v004", "v005", "v050", "v062", "v085", "v122", "v088", "v131", "v155", "v166")))
 # view(clinical_care_all)
@@ -43,3 +46,37 @@ clinical_care_rawvalue_num_denom = clinical_care_no_ci |>
 #          !grepl("cihigh", skim_variable) &
 #          !grepl("numerator", skim_variable) &
 #          !grepl("denominator", skim_variable))
+
+
+# ------------------------------------------------------------------------------
+# idk some extra work ive done for some reason
+# ----------------------EDA_clinicalcare_county_level.R-------------------------
+# # df of counties, parishes only---
+# # no states or country (USA)
+# no_states = national_data |>
+#   filter(countycode != "000")
+# # view(no_states)
+# 
+# 
+# clinical_care_county_level = no_states |>
+#   select(statecode, countycode, fipscode, state, county, county_clustered,
+#          contains(c("v003", "v004", "v005", "v050", "v062", "v085", "v122", "v088", "v131", "v155", "v166")))
+# view(clinical_care_county_level)
+# 
+# clinical_care_county_level_skim = skim(clinical_care_county_level) |>
+#   select(skim_variable, n_missing, complete_rate) |>
+#   left_join(data_dict_2025, by = c("skim_variable" = "variable")) |>
+#   arrange(complete_rate)
+# view(clinical_care_county_level_skim)
+# 
+# # ---
+# # clear columns with all NA values
+# clinical_care_county_level_clean = clinical_care_county_level |>
+#   select(statecode, countycode, fipscode, state, county, county_clustered, where(~!all(is.na(.))))
+# view(clinical_care_county_level_clean)
+# 
+# clinical_care_county_level_clean_skim = skim(clinical_care_county_level_clean) |>
+#   select(skim_variable, n_missing, complete_rate) |>
+#   left_join(data_dict_2025, by = c("skim_variable" = "variable")) |>
+#   arrange(complete_rate)
+# view(clinical_care_county_level_clean_skim)
