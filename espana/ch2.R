@@ -248,3 +248,5 @@ ggplot(eda_long, aes(x = uninsured, y = phs, color = group)) +
     axis.title = element_text(face = "bold"),
     legend.position = "bottom"
   )
+
+
