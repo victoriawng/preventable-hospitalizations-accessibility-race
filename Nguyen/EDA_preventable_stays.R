@@ -6,15 +6,19 @@
 
 # all counties, state, and even one row for USA
 preventable_stays = national_data |>
-  dplyr::select(statecode, countycode, fipscode, state, county,
+  dplyr::select(statecode, countycode, fipscode, state, county, 
                 contains("v005"))
+preventable_stays = preventable_stays |>
+  dplyr::select(statecode, countycode, fipscode, state, county, where(~!all(is.na(.))))
 view(preventable_stays)
 
 
 # for states only ---------------------------------------------------------------
-preventable_stays_state = state |>
-  dplyr::select(statecode, countycode, fipscode, state, county,
-                contains("v005"))
+preventable_stays_state = preventable_stays |>
+  filter(countycode == "000")
+# preventable_stays_state = state |>
+#   dplyr::select(statecode, countycode, fipscode, state, county,
+#                 contains("v005"))
 view(preventable_stays_state)
 
 

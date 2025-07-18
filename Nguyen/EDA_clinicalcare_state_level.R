@@ -1,5 +1,6 @@
 state = national_data |>
-  filter(countycode == "000")
+# no USA
+  filter(countycode == "000", statecode != "00")
 view(state)
 
 
