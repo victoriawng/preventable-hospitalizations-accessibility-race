@@ -434,15 +434,10 @@ varImpPlot(rfnr_model)
 importance(rf_model)
 
 
-# If not already done, load dplyr
-library(dplyr)
-
-# Count the number of counties per racial_makeup group
-count_by_group <- predict_cn_subset_ratios |> 
+count_by_group <- predict_cn_subset |> 
   count(racial_makeup, name = "n_counties") |> 
   arrange(desc(n_counties))
 
-# View the results
 print(count_by_group)
 
 
@@ -461,6 +456,8 @@ hw_counties <- predict_cn_subset |>
 
 bw_counties <- predict_cn_subset |> 
   filter(racial_makeup == "non_hispanic_black, non_hispanic_white")
+
+
 
 rf_subset_wh <- wh_counties |> 
   select(primary_care_physicians_raw_value,
@@ -519,15 +516,15 @@ rf_subset_bw <- na.omit(rf_subset_bw)
 
 
 set.seed(42)
-rf_model_bw <- randomForest(
+rf_model_wh <- randomForest(
   preventable_hospital_stays_raw_value ~ .,
-  data = rf_subset_bw,
+  data = rf_subset_wh,
   importance = TRUE,
   ntree = 500
 )
 
 #PLOT
-varImpPlot(rf_model_bw)
+varImpPlot(rf_model_wh)
 
 #TABLE
 importance(rf_model_bw)
