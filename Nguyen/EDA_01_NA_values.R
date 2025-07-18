@@ -67,8 +67,7 @@ no_ci_denom_num_missing40plus = missing_40plus_description |>
            !grepl("numerator", skim_variable) &
            !grepl("denominator", skim_variable))
 view(no_ci_denom_num_missing40plus)
-*
-  
+
   
 
 # nrow(missing_40plus_description) #442
