@@ -4,18 +4,22 @@
 # of preventable hospital stays by race?
 # ----------------------------------------
 
+# library(readxl)
+library(tidyverse)
+
+county_data = read_csv("data/analytic_data2025_v2.csv") 
+
 library(tidyverse)
 library(MASS)
 library(patchwork)
 
-county_data <- read_csv("/data/analytic_data2025_v2.csv")
 
 # Step 1: Construct cleaned dataset from County Health Rankings
 eda_data <- county_data %>%
   transmute(
     fips = `5-digit FIPS Code`,
     county = Name,
-    state = `State Abbreviation`,
+    state = `State Abbreviation`),
     
     # Outcome variables by race
     phs_white = as.numeric(`Preventable Hospital Stays (White)`),
@@ -250,5 +254,3 @@ ggplot(eda_long, aes(x = uninsured, y = phs, color = group)) +
     axis.title = element_text(face = "bold"),
     legend.position = "bottom"
   )
-
-

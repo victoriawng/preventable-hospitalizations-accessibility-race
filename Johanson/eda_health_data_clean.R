@@ -11,8 +11,13 @@ library(tigris)
 library(glmmTMB)
 library(broom)
 library(glmmTMB)
+library(car)
+library(sf)
+library(randomForest)
 
-national_data <- read_csv("data/analytic_data2025_v2.csv")
+county_data <- read_csv("data/analytic_data2025_v2.csv") #FOR RUNNING ARTURO MODELS
+
+national_data <- read_csv("data/analytic_data2025_v2.csv") #FOR RUNNING THIS FILE
 
 #Clean names
 cn_national_data <- national_data |> 
@@ -24,6 +29,7 @@ cn_national_data_subset <- cn_national_data |>
     state_fips_code,
     state_abbreviation,
     name,
+    population_raw_value,
     county_fips_code,
     flu_vaccinations_raw_value,
     primary_care_physicians_raw_value,
@@ -86,7 +92,9 @@ cn_national_data_subset <- cn_national_data |>
     percent_disability_functional_limitations_raw_value,
     percent_not_proficient_in_english_raw_value,
     percent_rural_raw_value,
-    children_eligible_for_free_or_reduced_price_lunch_raw_value
+    children_eligible_for_free_or_reduced_price_lunch_raw_value,
+    median_household_income_raw_value,
+    income_inequality_raw_value
   )
 
 ##CLEAN DATA SET
@@ -109,7 +117,7 @@ cn_counties_national_subset[cols_to_convert] <- lapply(
 )
 
 
-##TO VIEW MISSING VALUES
+##TO VIEW MISSING VALUES (IGNORE)
 vars <- colnames(cn_counties_national_subset)
 
 var_groups <- split(vars, cut(seq_along(vars), 4, labels = FALSE))
@@ -124,19 +132,6 @@ for (i in 1:4) {
 }
 
 
-#Scatter plot variable against preventable hospital stays
-predict_cn_subset_ratios |>
-  ggplot(aes(x = ratio_of_population_to_mental_health_providers,
-             y = preventable_hospital_stays_raw_value)) + 
-  geom_point(alpha = 0.3, size = 1) +
-  scale_y_log10() +
-  scale_x_log10() +
-  labs(y = "Preventable Hospital Stays (log scale)")
-
-#Correlation between two variables
-with(clean_names_national_subset_counties, 
-     cor(ratio_of_population_to_primary_care_physicians,
-         preventable_hospital_stays_raw_value))
 
 #Map Stuff
 options(tigris_use_cache = TRUE)
@@ -154,7 +149,7 @@ cn_counties_national_subset <- cn_counties_national_subset |>
 map_data <- counties_sf |> 
   left_join(cn_counties_national_subset, by = c("GEOID" = "fips"))
 
-#Interactive US County Map
+#US County Map
 
 #Run first
 pal <- colorNumeric(
@@ -163,78 +158,45 @@ pal <- colorNumeric(
   na.color = "gray90"
 )
 
-#Leaflet map
-leaflet(map_data) |> 
-  addProviderTiles("CartoDB.Positron") |>  
-  addPolygons(
-    fillColor = ~pal(preventable_hospital_stays_raw_value),
-    weight = 0.2,
-    opacity = 1,
-    color = "white",
-    fillOpacity = 0.8,
-    label = ~paste0(NAME, ": ", 
-                    ifelse(is.na(preventable_hospital_stays_raw_value), 
-                           "No data", 
-                           comma(preventable_hospital_stays_raw_value))),
-    highlightOptions = highlightOptions(
-      weight = 1.5,
-      color = "#666",
-      fillOpacity = 1,
-      bringToFront = TRUE
-    )
-  ) |> 
-  addLegend(
-    pal = pal,
-    values = ~preventable_hospital_stays_raw_value,
-    title = "Preventable Hospital Stays",
-    position = "bottomright"
+# Load state shapefile
+states_sf <- states(cb = TRUE, year = 2023, class = "sf")
+
+# Exclude Alaska (02) and Hawaii (15)
+map_data_contig <- map_data %>%
+  filter(!STATEFP %in% c("02", "15"))
+
+states_sf_contig <- states_sf %>%
+  filter(!STATEFP %in% c("02", "15"))
+
+#PLOT
+ggplot() +
+  geom_sf(data = map_data_contig, aes(fill = preventable_hospital_stays_raw_value), color = NA) +
+  geom_sf(data = states_sf_contig, fill = NA, color = "white", size = 0.15) +
+  scale_fill_viridis_c(option = "magma", na.value = "gray90", name = "Preventable\nHospital Stays") +
+  coord_sf(
+    crs = st_crs(2163),
+    xlim = c(-2.4e6, 2.5e6),
+    ylim = c(-2.2e6, 1.5e6),
+    expand = FALSE
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = margin(0, 0, 0, 0),
+    legend.position = "right"
+  ) +
+  labs(
+    caption = "Source: County Health Rankings, 2023"
   )
 
-#Early Modeling
 
-poisson_model <- glm(
-  preventable_hospital_stays_raw_value ~ uninsured_raw_value + ratio_of_population_to_primary_care_physicians
-  + ratio_of_population_to_mental_health_providers + percent_disability_functional_limitations_raw_value
-  + ratio_of_population_to_dentists + percent_rural_raw_value + broadband_access_raw_value
-  + percent_65_and_older_raw_value + ratio_of_population_to_primary_care_providers_other_than_physicians,
-  family = poisson(link = "log"),
-  data = clean_names_national_subset_counties,
-  na.action = na.exclude
-)
-
-tidy(poisson_model)
-
-
-#Correlations
-
-with(cn_counties_race_data, 
-     cor(percent_asian_raw_value,
-         preventable_hospital_stays_raw_value))
-
-with(cn_counties_race_data, 
-     cor(percent_non_hispanic_black_raw_value,
-         preventable_hospital_stays_raw_value))
-
-with(cn_counties_race_data, 
-     cor(percent_non_hispanic_white_raw_value,
-         preventable_hospital_stays_raw_value))
-
-with(clean_names_national_subset_counties, 
-     cor(high_school_completion_raw_value, preventable_hospital_stays_raw_value, use = "complete.obs"))
-
-with(clean_names_national_subset_counties, 
-     cor(severe_housing_cost_burden_raw_value, preventable_hospital_stays_raw_value, use = "complete.obs"))
-
-?cor
 #Race Data
 
-cn_counties_race_data <- clean_names_national_subset_counties |>
-  select(state_abbreviation, name, fips, percent_asian_raw_value, percent_american_indian_or_alaska_native_raw_value,
-         percent_hispanic_raw_value, percent_non_hispanic_black_raw_value, percent_non_hispanic_white_raw_value,
-         percent_native_hawaiian_or_other_pacific_islander_raw_value, preventable_hospital_stays_raw_value, percent_disability_functional_limitations_raw_value,
-         high_school_completion_raw_value)
 
-race_cols <- c(
+
+race_cols <- c( #RUN THIS
   "percent_american_indian_or_alaska_native_raw_value",
   "percent_asian_raw_value",
   "percent_hispanic_raw_value",
@@ -243,7 +205,7 @@ race_cols <- c(
   "percent_non_hispanic_white_raw_value"
 )
 
-racial_makeup <- cn_counties_national_subset |> 
+racial_makeup <- cn_counties_national_subset |> #RUN THIS
   pivot_longer(
     cols = all_of(race_cols),
     names_to = "race",
@@ -264,87 +226,309 @@ racial_makeup <- cn_counties_national_subset |>
     .groups = "drop"
   )
 
-cn_counties_national_subset <- cn_counties_national_subset |> 
+cn_counties_national_subset <- cn_counties_national_subset |>  #RUN THIS
   left_join(racial_makeup, by = c("state_fips_code", "county_fips_code"))
 
-predict_cn_subset <- cn_counties_national_subset |> 
-  select(state_abbreviation, name, preventable_hospital_stays_raw_value,
+
+
+predict_cn_subset <- cn_counties_national_subset |> #DONT RUN
+  select(state_abbreviation, name, population_raw_value, preventable_hospital_stays_raw_value,
          uninsured_raw_value, dentists_raw_value, other_primary_care_providers_raw_value,
          broadband_access_raw_value, mental_health_providers_raw_value,
          primary_care_physicians_raw_value, mammography_screening_raw_value,
          severe_housing_problems_raw_value, high_school_completion_raw_value,
          percent_disability_functional_limitations_raw_value, percent_not_proficient_in_english_raw_value,
-         percent_rural_raw_value, racial_makeup)
+         percent_rural_raw_value, racial_makeup, income_inequality_raw_value, median_household_income_raw_value,
+         percent_american_indian_or_alaska_native_raw_value,
+         percent_asian_raw_value, percent_hispanic_raw_value, percent_native_hawaiian_or_other_pacific_islander_raw_value,
+         percent_non_hispanic_black_raw_value, percent_non_hispanic_white_raw_value)
 
-predict_cn_subset_ratios <- cn_counties_national_subset |> 
-  select(state_abbreviation, name, ratio_of_population_to_primary_care_physicians, preventable_hospital_stays_raw_value,
+predict_cn_subset <- predict_cn_subset |> 
+  mutate(uninsured_raw_value_pct = uninsured_raw_value * 100)
+
+
+predict_cn_subset_ratios <- cn_counties_national_subset |> #RUN THIS
+  select(state_abbreviation, name, population_raw_value, ratio_of_population_to_primary_care_physicians, preventable_hospital_stays_raw_value,
          uninsured_raw_value, ratio_of_population_to_mental_health_providers, ratio_of_population_to_primary_care_providers_other_than_physicians,
          broadband_access_raw_value, ratio_of_population_to_dentists,
          primary_care_physicians_raw_value, mammography_screening_raw_value,
          severe_housing_problems_raw_value, high_school_completion_raw_value,
          percent_disability_functional_limitations_raw_value, percent_not_proficient_in_english_raw_value,
-         percent_rural_raw_value, racial_makeup)
+         percent_rural_raw_value, racial_makeup, income_inequality_raw_value, median_household_income_raw_value,
+         population_raw_value, preventable_hospital_stays_raw_value, percent_american_indian_or_alaska_native_raw_value,
+         percent_asian_raw_value, percent_hispanic_raw_value, percent_native_hawaiian_or_other_pacific_islander_raw_value,
+         percent_non_hispanic_black_raw_value, percent_non_hispanic_white_raw_value)
 
-with(predict_cn_subset_ratios, 
-     cor(uninsured_raw_value, preventable_hospital_stays_raw_value, use = "complete.obs"))
+predict_cn_subset_ratios <- predict_cn_subset_ratios |> 
+  mutate(uninsured_raw_value_pct = uninsured_raw_value * 100)
 
-#Negative Binomial + Random Effects
+#Negative Binomial + Random Effects (DONT RUN)
 nb_model <- glmmTMB(
-  preventable_hospital_stays_raw_value ~ uninsured_raw_value + dentists_raw_value 
+  preventable_hospital_stays_raw_value ~ uninsured_raw_value_pct + dentists_raw_value 
   + other_primary_care_providers_raw_value + broadband_access_raw_value
   + mental_health_providers_raw_value + primary_care_physicians_raw_value
   + mammography_screening_raw_value + severe_housing_problems_raw_value
   + high_school_completion_raw_value + percent_disability_functional_limitations_raw_value
-  + percent_not_proficient_in_english_raw_value + percent_rural_raw_value
+  + percent_not_proficient_in_english_raw_value + percent_rural_raw_value + income_inequality_raw_value
   + (1 | racial_makeup),
   family = nbinom2,
   data = predict_cn_subset
 )
+
+
+
 summary(nb_model)
 
-predict_cn_subset_ratios <- na.omit(predict_cn_subset_ratios)
+predict_cn_subset_ratios <- na.omit(predict_cn_subset_ratios) #RUN THIS
 
 
-nb_model_ratios <- glmmTMB(
-  preventable_hospital_stays_raw_value ~ uninsured_raw_value + ratio_of_population_to_dentists 
-  + ratio_of_population_to_primary_care_providers_other_than_physicians + broadband_access_raw_value
+nb_model_ratios <- glmmTMB( #RUN THIS
+  preventable_hospital_stays_raw_value ~ uninsured_raw_value_pct + ratio_of_population_to_dentists 
+  + ratio_of_population_to_primary_care_providers_other_than_physicians
   + ratio_of_population_to_mental_health_providers + ratio_of_population_to_primary_care_physicians
   + mammography_screening_raw_value + severe_housing_problems_raw_value
   + high_school_completion_raw_value + percent_disability_functional_limitations_raw_value
-  + percent_not_proficient_in_english_raw_value + percent_rural_raw_value
+  + percent_rural_raw_value + income_inequality_raw_value
   + (1 | racial_makeup),
   family = nbinom2,
   data = predict_cn_subset_ratios
 )
 
-quasi_model_ratios <- glm(preventable_hospital_stays_raw_value ~ uninsured_raw_value + ratio_of_population_to_dentists 
-                            + ratio_of_population_to_primary_care_providers_other_than_physicians + broadband_access_raw_value
-                            + ratio_of_population_to_mental_health_providers + ratio_of_population_to_primary_care_physicians
-                            + mammography_screening_raw_value + severe_housing_problems_raw_value
-                            + high_school_completion_raw_value + percent_disability_functional_limitations_raw_value
-                            + percent_not_proficient_in_english_raw_value + percent_rural_raw_value,
-                            family = quasipoisson(link = "log"),
-                            data = predict_cn_subset_ratios)
 
 
-poisson_model_ratios <- glm(preventable_hospital_stays_raw_value ~ uninsured_raw_value + ratio_of_population_to_dentists 
-                          + ratio_of_population_to_primary_care_providers_other_than_physicians + broadband_access_raw_value
-                          + ratio_of_population_to_mental_health_providers + ratio_of_population_to_primary_care_physicians
-                          + mammography_screening_raw_value + severe_housing_problems_raw_value
-                          + high_school_completion_raw_value + percent_disability_functional_limitations_raw_value
-                          + percent_not_proficient_in_english_raw_value + percent_rural_raw_value,
-                          family = poisson(link = "log"),
-                          data = predict_cn_subset_ratios)
+summary(nb_model_ratios) #RUN THIS
 
-?glmmTMB
 
-summary(poisson_model_ratios)
+nb_model_ratios_black <- glmmTMB(
+  preventable_hospital_stays_raw_value ~
+    uninsured_raw_value_pct * percent_non_hispanic_black_raw_value +        # interaction term example
+    ratio_of_population_to_dentists * percent_non_hispanic_black_raw_value +
+    ratio_of_population_to_primary_care_providers_other_than_physicians * percent_non_hispanic_black_raw_value +
+    ratio_of_population_to_mental_health_providers * percent_non_hispanic_black_raw_value +
+    ratio_of_population_to_primary_care_physicians * percent_non_hispanic_black_raw_value +
+    mammography_screening_raw_value * percent_non_hispanic_black_raw_value +
+    severe_housing_problems_raw_value * percent_non_hispanic_black_raw_value +
+    high_school_completion_raw_value * percent_non_hispanic_black_raw_value +
+    percent_disability_functional_limitations_raw_value * percent_non_hispanic_black_raw_value +
+    percent_rural_raw_value * percent_non_hispanic_black_raw_value +
+    income_inequality_raw_value * percent_non_hispanic_black_raw_value,
+  family = nbinom2,
+  data = predict_cn_subset_ratios
+)
 
-summary(quasi_model_ratios)
+summary(nb_model_ratios_black)
 
-summary(nb_model_ratios)
 
-with(predict_cn_subset_ratios,
-     cor(uninsured_raw_value, preventable_hospital_stays_raw_value)
 
-     
+#MORE RACE DATA
+
+stays_by_race <- cn_counties_national_subset |> 
+  select(state_abbreviation, name, population_raw_value, preventable_hospital_stays_raw_value, percent_american_indian_or_alaska_native_raw_value,
+         percent_asian_raw_value, percent_hispanic_raw_value, percent_native_hawaiian_or_other_pacific_islander_raw_value,
+         percent_non_hispanic_black_raw_value, percent_non_hispanic_white_raw_value)
+
+
+library(ggplot2)
+
+# Example: Hispanic
+ggplot(predict_cn_subset_ratios, aes(x = percent_hispanic_raw_value, y = uninsured_raw_value*100)) +
+  geom_point(alpha=0.5) +
+  labs(x = "Percent Hispanic", y = "Uninsured Rate (%)", title = "Uninsured Rate vs Percent Hispanic by County") +
+  geom_smooth(method="lm")
+
+
+
+
+summary_by_race <- predict_cn_subset_ratios |> 
+  group_by(racial_makeup) |> 
+  summarise(
+    mean_uninsured_rate = weighted.mean(uninsured_raw_value, population_raw_value, na.rm = TRUE),
+    mean_preventable_hosp = weighted.mean(preventable_hospital_stays_raw_value, population_raw_value, na.rm = TRUE),
+    n_counties = n()
+  )
+
+print(summary_by_race)
+
+
+
+library(ggplot2)
+
+#Uninsured
+ggplot(predict_cn_subset_ratios, aes(
+  x = uninsured_raw_value * 100, 
+  y = preventable_hospital_stays_raw_value, 
+  color = racial_makeup)) +
+  geom_point(alpha = 0.2) +
+  labs(
+    x = "Uninsured Rate (%)", 
+    y = "Preventable Hospital Stays (per 100,000)", 
+    color = "Dominant Race",
+    title = "Uninsured Rate vs Preventable Hospitalizations by Racial Group"
+  ) +
+  geom_smooth(method = "lm", se = FALSE)
+
+#High school completion
+ggplot(predict_cn_subset_ratios, aes(
+  x = high_school_completion_raw_value * 100, 
+  y = preventable_hospital_stays_raw_value, 
+  color = racial_makeup)) +
+  geom_point(alpha = 0.2) +
+  labs(
+    x = "High School Completion (%)", 
+    y = "Preventable Hospital Stays (per 100,000)", 
+    color = "Dominant Race",
+    title = "High School Completion vs Preventable Hospitalizations by Racial Group"
+  ) +
+  geom_smooth(method = "lm", se = FALSE)
+
+#RANDOM FOREST
+
+# install.packages("randomForest")   # Run if not already installed
+library(randomForest)
+
+rf_subset <- predict_cn_subset |> 
+  select(primary_care_physicians_raw_value,
+         uninsured_raw_value, mental_health_providers_raw_value, dentists_raw_value,
+         broadband_access_raw_value, other_primary_care_providers_raw_value, mammography_screening_raw_value,
+         severe_housing_problems_raw_value, high_school_completion_raw_value,
+         percent_disability_functional_limitations_raw_value, percent_not_proficient_in_english_raw_value,
+         percent_rural_raw_value, racial_makeup, income_inequality_raw_value, median_household_income_raw_value,
+         population_raw_value, preventable_hospital_stays_raw_value, percent_american_indian_or_alaska_native_raw_value,
+         percent_asian_raw_value, percent_hispanic_raw_value, percent_native_hawaiian_or_other_pacific_islander_raw_value,
+         percent_non_hispanic_black_raw_value, percent_non_hispanic_white_raw_value)
+
+rf_subset <- na.omit(rf_subset)
+
+rfnr_subset <- rf_subset |>
+  select(
+    preventable_hospital_stays_raw_value,
+    primary_care_physicians_raw_value,
+    uninsured_raw_value,
+    mental_health_providers_raw_value,
+    other_primary_care_providers_raw_value,
+    broadband_access_raw_value,
+    dentists_raw_value,
+    mammography_screening_raw_value,
+    severe_housing_problems_raw_value,
+    high_school_completion_raw_value,
+    percent_disability_functional_limitations_raw_value,
+    percent_not_proficient_in_english_raw_value,
+    percent_rural_raw_value
+  )
+
+
+
+set.seed(42)
+# Replace 'your_outcome' and 'your_dataframe' with your actual variable/data set names:
+rfnr_model <- randomForest(
+  preventable_hospital_stays_raw_value ~ .,
+  data = rfnr_subset,
+  importance = TRUE,
+  ntree = 500
+)
+
+# Plot variable importance
+varImpPlot(rfnr_model)
+
+# View variable importance as a table
+importance(rf_model)
+
+
+# If not already done, load dplyr
+library(dplyr)
+
+# Count the number of counties per racial_makeup group
+count_by_group <- predict_cn_subset_ratios |> 
+  count(racial_makeup, name = "n_counties") |> 
+  arrange(desc(n_counties))
+
+# View the results
+print(count_by_group)
+
+
+#SUBSET COUNTIES BY RACIAL MAKEUP
+wh_counties <- predict_cn_subset |> 
+  filter(racial_makeup == "non_hispanic_white, hispanic")
+
+wb_counties <- predict_cn_subset |> 
+  filter(racial_makeup == "non_hispanic_white, non_hispanic_black")
+
+waian_counties <- predict_cn_subset |> 
+  filter(racial_makeup == "non_hispanic_white, american_indian_or_alaska_native")
+
+hw_counties <- predict_cn_subset |> 
+  filter(racial_makeup == "hispanic, non_hispanic_white")
+
+bw_counties <- predict_cn_subset |> 
+  filter(racial_makeup == "non_hispanic_black, non_hispanic_white")
+
+rf_subset_wh <- wh_counties |> 
+  select(primary_care_physicians_raw_value,
+         uninsured_raw_value, mental_health_providers_raw_value, dentists_raw_value,
+         broadband_access_raw_value, other_primary_care_providers_raw_value, mammography_screening_raw_value,
+         severe_housing_problems_raw_value, high_school_completion_raw_value,
+         percent_disability_functional_limitations_raw_value, percent_not_proficient_in_english_raw_value,
+         percent_rural_raw_value, income_inequality_raw_value, median_household_income_raw_value,
+         preventable_hospital_stays_raw_value)
+
+rf_subset_wh <- na.omit(rf_subset_wh)
+
+rf_subset_wb <- wb_counties |> 
+  select(primary_care_physicians_raw_value,
+         uninsured_raw_value, mental_health_providers_raw_value, dentists_raw_value,
+         broadband_access_raw_value, other_primary_care_providers_raw_value, mammography_screening_raw_value,
+         severe_housing_problems_raw_value, high_school_completion_raw_value,
+         percent_disability_functional_limitations_raw_value, percent_not_proficient_in_english_raw_value,
+         percent_rural_raw_value, income_inequality_raw_value, median_household_income_raw_value,
+         preventable_hospital_stays_raw_value)
+
+rf_subset_wb <- na.omit(rf_subset_wb)
+
+rf_subset_waian <- waian_counties |> 
+  select(primary_care_physicians_raw_value,
+         uninsured_raw_value, mental_health_providers_raw_value, dentists_raw_value,
+         broadband_access_raw_value, other_primary_care_providers_raw_value, mammography_screening_raw_value,
+         severe_housing_problems_raw_value, high_school_completion_raw_value,
+         percent_disability_functional_limitations_raw_value, percent_not_proficient_in_english_raw_value,
+         percent_rural_raw_value, income_inequality_raw_value, median_household_income_raw_value,
+         preventable_hospital_stays_raw_value)
+
+rf_subset_waian <- na.omit(rf_subset_waian)
+
+rf_subset_hw <- hw_counties |> 
+  select(primary_care_physicians_raw_value,
+         uninsured_raw_value, mental_health_providers_raw_value, dentists_raw_value,
+         broadband_access_raw_value, other_primary_care_providers_raw_value, mammography_screening_raw_value,
+         severe_housing_problems_raw_value, high_school_completion_raw_value,
+         percent_disability_functional_limitations_raw_value, percent_not_proficient_in_english_raw_value,
+         percent_rural_raw_value, income_inequality_raw_value, median_household_income_raw_value,
+         preventable_hospital_stays_raw_value)
+
+rf_subset_hw <- na.omit(rf_subset_hw)
+
+rf_subset_bw <- bw_counties |> 
+  select(primary_care_physicians_raw_value,
+         uninsured_raw_value, mental_health_providers_raw_value, dentists_raw_value,
+         broadband_access_raw_value, other_primary_care_providers_raw_value, mammography_screening_raw_value,
+         severe_housing_problems_raw_value, high_school_completion_raw_value,
+         percent_disability_functional_limitations_raw_value, percent_not_proficient_in_english_raw_value,
+         percent_rural_raw_value, income_inequality_raw_value, median_household_income_raw_value,
+         preventable_hospital_stays_raw_value)
+
+rf_subset_bw <- na.omit(rf_subset_bw)
+
+
+set.seed(42)
+rf_model_bw <- randomForest(
+  preventable_hospital_stays_raw_value ~ .,
+  data = rf_subset_bw,
+  importance = TRUE,
+  ntree = 500
+)
+
+#PLOT
+varImpPlot(rf_model_bw)
+
+#TABLE
+importance(rf_model_bw)
+
