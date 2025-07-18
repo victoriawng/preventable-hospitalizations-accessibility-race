@@ -10,6 +10,8 @@ library(visdat)
 
 # to check which packages are loaded
 # (.packages())
+# or
+# sessionInfo()
 
 # notes ------------------------------------------------------------------------
 # NA values
@@ -24,6 +26,7 @@ library(visdat)
 national_data = read_sas("data/analytic_data2025_v2.sas7bdat")
 trend_data = read_sas("data/chr_trends_sas_2025.sas7bdat")
 data_dict_2025 = read_excel("data/DataDictionary_2025.xlsx")
+# county_health_rank_2025 = read_csv("data_SAS/2025 County Health Rankings Data - v3.csv") # has z scores of preventable hospital stays, 2nd sheet
 
 
 # agenda -----------------------------------------------------------------------

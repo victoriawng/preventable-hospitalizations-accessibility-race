@@ -28,4 +28,8 @@ names(data_dict_2025)[names(data_dict_2025) == "Variable Name"] <- "variable"
 clinical_care_race_NA_dict = clinical_care_race_NA |>
   left_join(data_dict_2025, by = c("skim_variable" = "variable"))
 
-view(clinical_care_race_NA_dict)
+# previous had county, state, and only want race so
+clinical_care_race_NA_final = clinical_care_race_NA_dict |>
+       select(skim_variable, complete_rate, n_missing, Measure, Description) |>
+       filter(grepl("v", skim_variable))
+view(clinical_care_race_NA_final)

@@ -8,7 +8,7 @@ race = national_data |>
          contains(c("v051", "v054", "v055", "v056", "v080", "v081", "v126")))
 race = race |>
   select(!contains(c("cilow", "cihigh", "v051_num", "v051_denom")))
-view(race)
+# view(race)
 
 # grabbing only rawvalues, dropping denom, numerator, etc
 # omitted county_clustered
@@ -19,7 +19,7 @@ race_rawvalue = race |>
 race_rawvalue = race_rawvalue |>
   select(statecode, countycode, fipscode, state, county,
          !contains(c("v051")))
-view(race_rawvalue)
+# view(race_rawvalue)
 
 # little to no missing values :D
 # view(skim(race)|>
@@ -95,7 +95,7 @@ race_biggest_smallest <- race_rawvalue %>%
     smallest_pct   = min(c_across(all_of(race_rawvalue_cols)))
   ) %>%
   ungroup()
-view(race_biggest_smallest)
+# view(race_biggest_smallest)
 # race_biggest_smallest <- race_biggest_smallest %>%
 #   mutate(race_name = race_lookup[as.character(largest_race, smallest_race)])
 # view(race_biggest_smallest)
@@ -105,36 +105,56 @@ race_largest = race_biggest_smallest |>
   select(statecode, countycode, fipscode, state, county,
          contains(c("largest"))) |>
   arrange(desc(largest_pct))
-view(race_largest)
+# view(race_largest)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+race_largest_70plus = race_largest |>
+  filter(largest_pct > .70)
+view(race_largest_70plus)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 race_largest_noWhite = race_largest |>
   filter(largest_race_label != "Non-Hispanic White")
-view(race_largest_noWhite)
+# view(race_largest_noWhite)
 
 race_smallest = race_biggest_smallest |>
   select(statecode, countycode, fipscode, state, county,
          contains(c("smallest"))) |>
   arrange(desc(smallest_pct))
-view(race_smallest)
+# view(race_smallest)
 
 
 # ----
+white_majority_70plus = (race_largest |>
+  filter(largest_race_label == "Non-Hispanic White", largest_pct > .70))
+# view(white_majority_70plus)
+# ----
 unique(race_largest_noWhite$largest_race_label)
 
-view(race_largest_noWhite |>
-  filter(largest_pct > .70))
+race_largest_noWhite_70plus = race_largest_noWhite |>
+  filter(largest_pct > .70)
+# view(race_largest_noWhite_70plus)
 
-view(race_largest_noWhite |>
-       filter(largest_race_label == "Asian"))
+# asian_majority_70plus = (race_largest_noWhite_70plus |>
+#        filter(largest_race_label == "Asian"))
+# view(asian_majority_70plus)
 
-view(race_largest_noWhite |>
-       filter(largest_race_label == "Non-Hispanic Black" & largest_pct > .7))
+black_majority_70plus = (race_largest_noWhite_70plus |>
+       filter(largest_race_label == "Non-Hispanic Black"))
+# view(black_majority_70plus)
 
-view(race_largest_noWhite |>
-       filter(largest_race_label == "Native Hawaiian or Other Pacific Islander"))
+# hawaiian_majority_70plus = (race_largest_noWhite_70plus |>
+#       filter(largest_race_label == "Native Hawaiian or Other Pacific Islander"))
+# view(hawaiian_majority_70plus)
 
-view(race_largest_noWhite |>
+native_majority_70plus = (race_largest_noWhite_70plus |>
        filter(largest_race_label == "American Indian or Alaska Native"))
+# view(native_majority_70plus)
+
+hispanic_majority_70plus = race_largest_noWhite_70plus |>
+  filter(largest_race_label == "Hispanic ")
+# view(hispanic_majority_70plus)
+
 
 
 # graphs -----------------------------------------------------------------------

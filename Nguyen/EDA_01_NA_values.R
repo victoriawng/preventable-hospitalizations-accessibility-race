@@ -1,5 +1,6 @@
 library(skimr)
 library(visdat)
+# have not edit for no_states yet
 
 
 # to understand basic stats about data set
@@ -66,8 +67,7 @@ no_ci_denom_num_missing40plus = missing_40plus_description |>
            !grepl("numerator", skim_variable) &
            !grepl("denominator", skim_variable))
 view(no_ci_denom_num_missing40plus)
-*
-  
+
   
 
 # nrow(missing_40plus_description) #442
@@ -104,4 +104,5 @@ view(colSums(is.na(national_data)))
 # sapply(national_data, function(x) sum(is.na(x)))
 
 # row--------------------------------------------
-
+# return rows with NA values
+# your_df[!complete.cases(your_df), ]

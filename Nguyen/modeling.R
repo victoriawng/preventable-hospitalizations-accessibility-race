@@ -14,35 +14,35 @@
 #    relative to a population of 100,000 people who are enrolled in Medicare, 
 #    to make comparisons across different areas fair.
 
-library(dplyr)
-  
-preventable_stays = national_data |>
-  dplyr::select(statecode, countycode, fipscode, state, county, contains("v005_raw"))
 
-
-
-#
-
-# 
-
-view(preventable_stays)
-vis_miss(preventable_stays)
-
-
-dplyr::
-  select(national_data, statecode, countycode)
-
-colnames(national_data)
-
-,contains("v003"))
-
-class(national_data)
+view(white_majority_70plus) #white
+view(race_largest_noWhite_70plus) #nonwhite #65 rows
 
 view(national_data)
 
+class(national_data$countycode)
 
-clinical_care_all = national_data |>
-  select(statecode, countycode, fipscode, state, county, county_clustered,
-         contains(c("v003", "v004", "v005", "v050", "v062", "v085", "v122", "v088", "v131", "v155", "v166")))
 
+library(dplyr)
+
+view(skim(national_data |>
+dplyr::select(statecode, countycode, fipscode, state, county, 
+              contains("v005"))))
+# Return rows where the 'name' column is not NA
+ %>%
+  filter(!is.na(name))
+print(df_filtered_dplyr)
+
+
+vis_miss()# population
+# v178_rawvalue
+# v051_rawvalue
+
+view(clinical_care_rawvalue_num_denom)
+
+
+# clinical_care_all = national_data |>
+#   select(statecode, countycode, fipscode, state, county, county_clustered,
+#          contains(c("v003", "v004", "v005", "v050", "v062", "v085", "v122", "v088", "v131", "v155", "v166")))
+# view(clinical_care_all)
 
