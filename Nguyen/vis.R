@@ -12,6 +12,8 @@ national_data = read_sas("data_SAS/analytic_data2025_v2.sas7bdat")
 # cannot do states bc no state has majority non white over 70%
 # so have to do county
 
+
+# to be able to view these df, run EDA_preventable_stays.R AND EDA_race.R
 view(race_largest_70plus)
 view(preventable_stays_county)
 
