@@ -12,25 +12,49 @@ national_data = read_sas("data_SAS/analytic_data2025_v2.sas7bdat")
 # cannot do states bc no state has majority non white over 70%
 # so have to do county
 
-race_largest_70plus
-preventable_stays_county
+view(race_largest_70plus)
+view(preventable_stays_county)
 
-# merge ========================================================================
-# clinical_care_county_level_skim = skim(clinical_care_county_level) |>
-#   select(skim_variable, n_missing, complete_rate) |>
-#   left_join(data_dict_2025, by = c("skim_variable" = "variable")) |>
-#   arrange(complete_rate)
-# view(clinical_care_county_level_skim)
-# ========================================================================
-
-# clinical_care_county_level_skim = skim(clinical_care_county_level) |>
-#   select(skim_variable, n_missing, complete_rate) |>
-#   left_join(data_dict_2025, by = c("skim_variable" = "variable")) |>
+race_preventablestays_county = race_largest_70plus |>
+  left_join(preventable_stays_county, by = c("fipscode","statecode","countycode","state","county"))
+view(race_preventablestays_county)
+# |>
 #   arrange(complete_rate)
 # view(clinical_care_county_level_skim)
 
+# map now ======================================================================
+# install.packages("sf")
 
-view(preventable_stays_county_noNA)
+library(sf)
+library(dplyr)  
+library(ggplot2)
+library(tigris)
+
+options(tigris_use_cache = TRUE)  # optional: cache downloaded shapefiles
+counties_sf <- counties(cb = TRUE, year = 2020, class = "sf")
+
+view(counties_sf)
+plot_df = left_join(counties_sf, race_preventablestays_county, by = c("GEOID" = "fipscode"))
+# view(plot_df)
+
+# Static map
+ggplot(race_preventablestays_county) +
+  geom_sf(aes(fill = v005_rawvalue), color = NA) +
+  scale_fill_viridis_c(option = "plasma", name = "Preventable Stays") +
+  labs(title = "Counties where top race ≥ 70% of population",
+       subtitle = "Colored by rate of preventable hospital stays") +
+  theme_minimal()
+
+# Confirm plot_df is still spatial
+inherits(plot_df, "sf")         # Should return TRUE
+names(plot_df)                  # Should include 'geometry'
+st_geometry(plot_df)           # Should return the shape data
+
+
+
+
+
+# view(preventable_stays_county_noNA)
 
 
 

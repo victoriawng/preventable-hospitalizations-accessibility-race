@@ -158,15 +158,15 @@ hispanic_majority_70plus = race_largest_noWhite_70plus |>
 
 
 # graphs -----------------------------------------------------------------------
-race_biggest_smallest |>
-  ggplot(aes(x = largest_race_label)) +
-  geom_bar() + 
-  coord_flip()
-
-race_biggest_smallest |>
-  ggplot(aes(x = smallest_race_label)) +
-  geom_bar() + 
-  coord_flip()
+# race_biggest_smallest |>
+#   ggplot(aes(x = largest_race_label)) +
+#   geom_bar() + 
+#   coord_flip()
+# 
+# race_biggest_smallest |>
+#   ggplot(aes(x = smallest_race_label)) +
+#   geom_bar() + 
+#   coord_flip()
 
 
 
