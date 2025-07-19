@@ -529,3 +529,140 @@ varImpPlot(rf_model_wh)
 #TABLE
 importance(rf_model_bw)
 
+predict_cn_subset <- na.omit(predict_cn_subset)
+
+
+ggplot(data = predict_cn_subset, 
+       aes(x = high_school_completion_raw_value, y = preventable_hospital_stays_raw_value)) +
+  geom_point(alpha = 0.6) +                                
+  geom_smooth(method = "lm", color = "red", se = TRUE) +  
+  labs(
+    x = "High School Completion Rate (%)",
+    y = "Preventable Hospital Stays per 100,000",
+    title = "High School Completion vs. Preventable Hospital Stays",
+    caption = "Each point is a county"
+  ) +
+  theme_minimal()
+
+ggplot(data = predict_cn_subset, 
+       aes(x = percent_disability_functional_limitations_raw_value, y = preventable_hospital_stays_raw_value)) +
+  geom_point(alpha = 0.6) +                                
+  geom_smooth(method = "lm", color = "red", se = TRUE) +  
+  labs(
+    x = "Disability Functional Limitations Rate (%)",
+    y = "Preventable Hospital Stays per 100,000",
+    title = "Disability Functional Limitations vs. Preventable Hospital Stays",
+    caption = "Each point is a county"
+  ) +
+  theme_minimal()
+
+
+#Stacked plots
+rf_subset_wh$group <- "wh"
+rf_subset_wb$group <- "wb"
+rf_subset_waian$group <- "waian"
+rf_subset_hw$group <- "hw"
+rf_subset_bw$group <- "bw"
+
+combined_rf_subset <- rbind(
+  rf_subset_wh,
+  rf_subset_wb,
+  rf_subset_waian,
+  rf_subset_hw,
+  rf_subset_bw
+)
+
+
+
+
+#RACIAL GROUP SUBSET
+combined_rf_subset <- combined_rf_subset %>%
+  mutate(group = dplyr::recode(as.character(group),
+                               "wh" = "White-Hispanic",
+                               "wb" = "White-Black",
+                               "waian" = "White-AIAN",
+                               "hw" = "Hispanic-White",
+                               "bw" = "Black-White"
+  ))
+
+
+#HIGHSCHOOL COMPLETION
+ggplot(
+  combined_rf_subset,
+  aes(
+    x = high_school_completion_raw_value,
+    y = preventable_hospital_stays_raw_value,
+    color = group
+  )
+) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "lm", se = TRUE, size = 1.2) +
+  facet_wrap(~ group, nrow = 1) +
+  scale_color_manual(
+    values = c(
+      "White-Hispanic" = "red", 
+      "White-Black" = "blue", 
+      "White-AIAN" = "forestgreen", 
+      "Hispanic-White" = "orange", 
+      "Black-White" = "purple"
+    )
+  ) +
+  scale_x_continuous(limits = c(0.7, 1.0)) +
+  labs(
+    x = "High School Completion Rate (%)",
+    y = "Preventable Hospital Stays per 100,000",
+    title = "High School Completion vs. Preventable Hospital Stays by Group",
+    color = "Group"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    strip.text = element_text(color = "white", face = "bold", size = 14),
+    strip.background = element_rect(fill = "gray40")
+  )
+
+#UNINSURED
+ggplot(
+  combined_rf_subset,
+  aes(
+    x = uninsured_raw_value,
+    y = preventable_hospital_stays_raw_value,
+    color = group
+  )
+) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "lm", se = TRUE, size = 1.2) +
+  facet_wrap(~ group, nrow = 1) +
+  scale_color_manual(
+    values = c(
+      "White-Hispanic" = "red", 
+      "White-Black" = "blue", 
+      "White-AIAN" = "forestgreen", 
+      "Hispanic-White" = "orange", 
+      "Black-White" = "purple"
+    )
+  ) +
+  scale_x_continuous(limits = c(0.01, 0.4)) +
+  labs(
+    x = "Uninsured Rate (%)",
+    y = "Preventable Hospital Stays per 100,000",
+    title = "Uninsured vs. Preventable Hospital Stays by Group",
+    color = "Group"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    strip.text = element_text(color = "white", face = "bold", size = 14),
+    strip.background = element_rect(fill = "gray40")
+  )
+
+range(combined_rf_subset$uninsured_raw_value, na.rm = TRUE)
+
+map_data_bi <- bi_class(
+  map_data,
+  x = preventable_hospital_stays_raw_value,      # First variable
+  y = percent_rural_raw_value,                   # Second variable
+  style = "quantile",                            # Categorizes by quantiles
+  dim = 3                                        # 3x3 grid (9 bivariate classes)
+)
+
+
+
