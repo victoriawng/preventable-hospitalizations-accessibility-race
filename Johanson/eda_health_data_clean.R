@@ -14,6 +14,8 @@ library(glmmTMB)
 library(car)
 library(sf)
 library(randomForest)
+library(biscale)
+library(cowplot)
 
 county_data <- read_csv("data/analytic_data2025_v2.csv") #FOR RUNNING ARTURO MODELS
 
@@ -231,7 +233,7 @@ cn_counties_national_subset <- cn_counties_national_subset |>  #RUN THIS
 
 
 
-predict_cn_subset <- cn_counties_national_subset |> #DONT RUN
+predict_cn_subset <- cn_counties_national_subset |> # RUN
   select(state_abbreviation, name, population_raw_value, preventable_hospital_stays_raw_value,
          uninsured_raw_value, dentists_raw_value, other_primary_care_providers_raw_value,
          broadband_access_raw_value, mental_health_providers_raw_value,
@@ -247,7 +249,7 @@ predict_cn_subset <- predict_cn_subset |>
   mutate(uninsured_raw_value_pct = uninsured_raw_value * 100)
 
 
-predict_cn_subset_ratios <- cn_counties_national_subset |> #RUN THIS
+predict_cn_subset_ratios <- cn_counties_national_subset |> #DONT RUN
   select(state_abbreviation, name, population_raw_value, ratio_of_population_to_primary_care_physicians, preventable_hospital_stays_raw_value,
          uninsured_raw_value, ratio_of_population_to_mental_health_providers, ratio_of_population_to_primary_care_providers_other_than_physicians,
          broadband_access_raw_value, ratio_of_population_to_dentists,
@@ -262,7 +264,7 @@ predict_cn_subset_ratios <- cn_counties_national_subset |> #RUN THIS
 predict_cn_subset_ratios <- predict_cn_subset_ratios |> 
   mutate(uninsured_raw_value_pct = uninsured_raw_value * 100)
 
-#Negative Binomial + Random Effects (DONT RUN)
+#Negative Binomial + Random Effects (RUN THIS)
 nb_model <- glmmTMB(
   preventable_hospital_stays_raw_value ~ uninsured_raw_value_pct + dentists_raw_value 
   + other_primary_care_providers_raw_value + broadband_access_raw_value
@@ -320,25 +322,6 @@ summary(nb_model_ratios_black)
 
 
 
-#MORE RACE DATA
-
-stays_by_race <- cn_counties_national_subset |> 
-  select(state_abbreviation, name, population_raw_value, preventable_hospital_stays_raw_value, percent_american_indian_or_alaska_native_raw_value,
-         percent_asian_raw_value, percent_hispanic_raw_value, percent_native_hawaiian_or_other_pacific_islander_raw_value,
-         percent_non_hispanic_black_raw_value, percent_non_hispanic_white_raw_value)
-
-
-library(ggplot2)
-
-# Example: Hispanic
-ggplot(predict_cn_subset_ratios, aes(x = percent_hispanic_raw_value, y = uninsured_raw_value*100)) +
-  geom_point(alpha=0.5) +
-  labs(x = "Percent Hispanic", y = "Uninsured Rate (%)", title = "Uninsured Rate vs Percent Hispanic by County") +
-  geom_smooth(method="lm")
-
-
-
-
 summary_by_race <- predict_cn_subset_ratios |> 
   group_by(racial_makeup) |> 
   summarise(
@@ -349,9 +332,6 @@ summary_by_race <- predict_cn_subset_ratios |>
 
 print(summary_by_race)
 
-
-
-library(ggplot2)
 
 #Uninsured
 ggplot(predict_cn_subset_ratios, aes(
@@ -434,15 +414,10 @@ varImpPlot(rfnr_model)
 importance(rf_model)
 
 
-# If not already done, load dplyr
-library(dplyr)
-
-# Count the number of counties per racial_makeup group
-count_by_group <- predict_cn_subset_ratios |> 
+count_by_group <- predict_cn_subset |> 
   count(racial_makeup, name = "n_counties") |> 
   arrange(desc(n_counties))
 
-# View the results
 print(count_by_group)
 
 
@@ -461,6 +436,8 @@ hw_counties <- predict_cn_subset |>
 
 bw_counties <- predict_cn_subset |> 
   filter(racial_makeup == "non_hispanic_black, non_hispanic_white")
+
+
 
 rf_subset_wh <- wh_counties |> 
   select(primary_care_physicians_raw_value,
@@ -519,16 +496,203 @@ rf_subset_bw <- na.omit(rf_subset_bw)
 
 
 set.seed(42)
-rf_model_bw <- randomForest(
+rf_model_wh <- randomForest(
   preventable_hospital_stays_raw_value ~ .,
-  data = rf_subset_bw,
+  data = rf_subset_wh,
   importance = TRUE,
   ntree = 500
 )
 
 #PLOT
-varImpPlot(rf_model_bw)
+varImpPlot(rf_model_wh)
 
 #TABLE
 importance(rf_model_bw)
+
+predict_cn_subset <- na.omit(predict_cn_subset)
+
+
+ggplot(data = predict_cn_subset, 
+       aes(x = high_school_completion_raw_value, y = preventable_hospital_stays_raw_value)) +
+  geom_point(alpha = 0.6) +                                
+  geom_smooth(method = "lm", color = "red", se = TRUE) +  
+  labs(
+    x = "High School Completion Rate (%)",
+    y = "Preventable Hospital Stays per 100,000",
+    title = "High School Completion vs. Preventable Hospital Stays",
+    caption = "Each point is a county"
+  ) +
+  theme_minimal()
+
+ggplot(data = predict_cn_subset, 
+       aes(x = percent_disability_functional_limitations_raw_value, y = preventable_hospital_stays_raw_value)) +
+  geom_point(alpha = 0.6) +                                
+  geom_smooth(method = "lm", color = "red", se = TRUE) +  
+  labs(
+    x = "Disability Functional Limitations Rate (%)",
+    y = "Preventable Hospital Stays per 100,000",
+    title = "Disability Functional Limitations vs. Preventable Hospital Stays",
+    caption = "Each point is a county"
+  ) +
+  theme_minimal()
+
+
+#Stacked plots
+rf_subset_wh$group <- "wh"
+rf_subset_wb$group <- "wb"
+rf_subset_waian$group <- "waian"
+rf_subset_hw$group <- "hw"
+rf_subset_bw$group <- "bw"
+
+combined_rf_subset <- rbind(
+  rf_subset_wh,
+  rf_subset_wb,
+  rf_subset_waian,
+  rf_subset_hw,
+  rf_subset_bw
+)
+
+
+
+
+#RACIAL GROUP SUBSET
+combined_rf_subset <- combined_rf_subset %>%
+  mutate(group = dplyr::recode(as.character(group),
+                               "wh" = "White-Hispanic",
+                               "wb" = "White-Black",
+                               "waian" = "White-AIAN",
+                               "hw" = "Hispanic-White",
+                               "bw" = "Black-White"
+  ))
+
+
+#HIGHSCHOOL COMPLETION
+ggplot(
+  combined_rf_subset,
+  aes(
+    x = high_school_completion_raw_value,
+    y = preventable_hospital_stays_raw_value,
+    color = group
+  )
+) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "lm", se = TRUE, size = 1.2) +
+  facet_wrap(~ group, nrow = 1) +
+  scale_color_manual(
+    values = c(
+      "White-Hispanic" = "red", 
+      "White-Black" = "blue", 
+      "White-AIAN" = "forestgreen", 
+      "Hispanic-White" = "orange", 
+      "Black-White" = "purple"
+    )
+  ) +
+  scale_x_continuous(limits = c(0.7, 1.0)) +
+  labs(
+    x = "High School Completion Rate (%)",
+    y = "Preventable Hospital Stays per 100,000",
+    title = "High School Completion vs. Preventable Hospital Stays by Group",
+    color = "Group"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    strip.text = element_text(color = "white", face = "bold", size = 14),
+    strip.background = element_rect(fill = "gray40")
+  )
+
+#UNINSURED
+ggplot(
+  combined_rf_subset,
+  aes(
+    x = uninsured_raw_value,
+    y = preventable_hospital_stays_raw_value,
+    color = group
+  )
+) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "lm", se = TRUE, size = 1.2) +
+  facet_wrap(~ group, nrow = 1) +
+  scale_color_manual(
+    values = c(
+      "White-Hispanic" = "red", 
+      "White-Black" = "blue", 
+      "White-AIAN" = "forestgreen", 
+      "Hispanic-White" = "orange", 
+      "Black-White" = "purple"
+    )
+  ) +
+  scale_x_continuous(limits = c(0.01, 0.4)) +
+  labs(
+    x = "Uninsured Rate (%)",
+    y = "Preventable Hospital Stays per 100,000",
+    title = "Uninsured vs. Preventable Hospital Stays by Group",
+    color = "Group"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    strip.text = element_text(color = "white", face = "bold", size = 14),
+    strip.background = element_rect(fill = "gray40")
+  )
+
+range(combined_rf_subset$uninsured_raw_value, na.rm = TRUE)
+
+
+set.seed(123)
+map_data <- map_data %>%
+  mutate(
+    percent_rural_raw_value_jit = jitter(percent_rural_raw_value, amount = 0.01)
+  )
+
+
+map_data_bi <- bi_class(
+  map_data,
+  x = preventable_hospital_stays_raw_value,      # First variable
+  y = percent_rural_raw_value_jit,                   # Second variable
+  style = "quantile",                            # Categorizes by quantiles
+  dim = 3                                        # 3x3 grid (9 bivariate classes)
+)
+
+library(dplyr)
+
+# Replace 'state' with the actual column name if it's different
+map_data_bi_continental <- map_data_bi %>%
+  filter(!STATE_NAME %in% c("Hawaii", "Alaska"))
+
+
+bimap <- ggplot() +
+  geom_sf(
+    data = map_data_bi_continental,
+    aes(fill = bi_class),
+    color = "white", size = 0.1, show.legend = FALSE
+  ) +
+  bi_scale_fill(pal = "GrPink", dim = 3) +
+  labs(
+    title = "Preventable Hospital Stays & Percent Rural (US Counties)"
+  ) +
+  bi_theme() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10)
+  ) +
+  coord_sf(xlim = c(-125, -66), ylim = c(24, 50), expand = FALSE)  # Approximate bounds for continental US
+
+legend <- bi_legend(
+  pal = "GrPink",
+  dim = 3,
+  xlab = "Higher Preventable Hospital Stays",
+  ylab = "Higher % Rural",
+  size = 6
+)
+
+ggsave("bivariate_county_map.png", plot = last_plot(), width = 12, height = 8, dpi = 300)
+
+ggdraw() +
+  draw_plot(bimap, 0, 0, 1, 1) +
+  draw_plot(legend, 0.7, 0.7, 0.2, 0.2) +
+  theme(text = element_text(size = 10))
+
+
+
+
 
