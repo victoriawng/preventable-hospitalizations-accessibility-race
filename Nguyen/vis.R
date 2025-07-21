@@ -19,10 +19,13 @@ view(preventable_stays_county)
 
 race_preventablestays_county = race_largest_70plus |>
   left_join(preventable_stays_county, by = c("fipscode","statecode","countycode","state","county"))
-# view(race_preventablestays_county)
+view(race_preventablestays_county)
 # |>
 #   arrange(complete_rate)
 # view(clinical_care_county_level_skim)
+race_preventablestays_county_plot = race_preventablestays_county |>
+  select(fipscode,largest_race_label,v005_rawvalue)
+view(race_preventablestays_county_plot)
 
 # map now ======================================================================
 # install.packages("sf")
@@ -30,13 +33,18 @@ library(sf)
 library(dplyr)  
 library(ggplot2)
 library(tigris)
+
+# loading US counties geometry
 options(tigris_use_cache = TRUE)
 
+# class = "sf"
+counties_sf = counties(cb = TRUE, resolution = "5m", year = 2022) |>
+  filter(!(STATEFP %in% c("60", "66", "69", "72", "78"))) |>  # remove territories
+  st_transform(crs = 5070)  # Albers Equal Area for US mapping
 
-counties_sf = counties(cb = TRUE, class = "sf")
+
     # sf = simple features object 
 # view(counties_sf)
-
 
 counties_sf = counties_sf |>
   # replaces the polygon shape with a single point at the center
@@ -48,8 +56,42 @@ counties_sf = counties_sf |>
 view(counties_sf)
 
 # merge df so our df we want to plot has map data
-plot_df = left_join(counties_sf, race_preventablestays_county, by = c("GEOID" = "fipscode"))
+plot_df = left_join(counties_sf, race_preventablestays_county_plot, by = c("GEOID" = "fipscode"))
+plot_df = plot_df |> filter(!is.na(largest_race_label))
 view(plot_df)
+
+hist(plot_df$v005_rawvalue)
+
+
+                            
+# now mapping ==================================================
+# starts new ggplot plot
+ggplot() +
+  # base map - plotting counties' shape
+  # layering geometry and points 
+  # , fill = "white"
+  geom_point(data = plot_df,
+             aes( x = lon, y = lat,
+                  size = log(v005_rawvalue),
+                  color = largest_race_label),
+             alpha = 0.7) +
+  geom_sf(data = counties_sf, fill = NA, color = "black", size = 0.4) +
+  # controls the minimum and maximum bubble size in points.
+  scale_size(range = c(0.1, 3), 
+             name = "Bubble Variable") +
+  # scale_size_continuous(range = c(1,10)) +
+  # Use scale_color_viridis_d() for categorical (non-numeric) variables
+  # aka d = discrete color scales
+  scale_color_viridis_d(name = "Race Group", 
+                        option = "D") +
+  # theme_void() + # Removes all background gridlines, axis ticks, and text for a clean map layout.
+  theme_minimal() #+
+  # theme(legend.position = "right") + # Places the legends for size and color to the right of the map.
+  # to only see US and not entire earth
+  # coord_sf(xlim = c(-2500000, 2500000), ylim = c(-2000000, 1300000))
+  # labs(size = "Bubble size (var1)", color = "Color intensity (var2)")
+
+class(plot_df$v005_rawvalue)
 
 
 bubble_data = counties_sf |>
@@ -58,22 +100,6 @@ bubble_data = counties_sf |>
          lat = st_coordinates(.)[,2]) |>  # extract latitude
   as.data.frame()                          # convert sf to regular df for ggplot
 
-
-# starts new ggplot plot
-ggplot() +
-  # base map - plotting counties' shape
-  # layering geometry and points 
-  # , fill = "white"
-  geom_sf(data = counties_sf, color = "gray") +
-  geom_point(data = plot_df,
-             aes( x = lon, y = lat,
-               size = "v005_rawvalue",
-               color = "largest_race_label"),
-             alpha = 0.7) +
-  scale_size_continuous(range = c(1,10)) +
-  scale_color_viridis_c(option = "D") +
-  theme_minimal() +
-  labs(size = "Bubble size (var1)", color = "Color intensity (var2)")
 
 str(bubble_data$var1)
 
