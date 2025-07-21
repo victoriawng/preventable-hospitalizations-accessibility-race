@@ -96,7 +96,8 @@ cn_national_data_subset <- cn_national_data |>
     percent_rural_raw_value,
     children_eligible_for_free_or_reduced_price_lunch_raw_value,
     median_household_income_raw_value,
-    income_inequality_raw_value
+    income_inequality_raw_value,
+    unemployment_raw_value
   )
 
 ##CLEAN DATA SET
@@ -363,16 +364,13 @@ ggplot(predict_cn_subset_ratios, aes(
 
 #RANDOM FOREST
 
-# install.packages("randomForest")   # Run if not already installed
-library(randomForest)
-
 rf_subset <- predict_cn_subset |> 
   select(primary_care_physicians_raw_value,
          uninsured_raw_value, mental_health_providers_raw_value, dentists_raw_value,
          broadband_access_raw_value, other_primary_care_providers_raw_value, mammography_screening_raw_value,
          severe_housing_problems_raw_value, high_school_completion_raw_value,
          percent_disability_functional_limitations_raw_value, percent_not_proficient_in_english_raw_value,
-         percent_rural_raw_value, racial_makeup, income_inequality_raw_value, median_household_income_raw_value,
+         percent_rural_raw_value, income_inequality_raw_value,
          population_raw_value, preventable_hospital_stays_raw_value, percent_american_indian_or_alaska_native_raw_value,
          percent_asian_raw_value, percent_hispanic_raw_value, percent_native_hawaiian_or_other_pacific_islander_raw_value,
          percent_non_hispanic_black_raw_value, percent_non_hispanic_white_raw_value)
@@ -397,23 +395,28 @@ rfnr_subset <- rf_subset |>
   )
 
 
-
+#Random Forest for entire subset
 set.seed(42)
-# Replace 'your_outcome' and 'your_dataframe' with your actual variable/data set names:
-rfnr_model <- randomForest(
+rf_model <- randomForest(
   preventable_hospital_stays_raw_value ~ .,
-  data = rfnr_subset,
+  data = rf_subset,
   importance = TRUE,
   ntree = 500
 )
 
-# Plot variable importance
-varImpPlot(rfnr_model)
+varImpPlot(rf_model)
 
-# View variable importance as a table
 importance(rf_model)
 
+imp <- importance(rf_model)
+imp_df <- data.frame(Variable = rownames(imp), Importance = imp[,"%IncMSE"])
 
+ggplot(imp_df, aes(x = reorder(Variable, Importance), y = Importance)) +
+  geom_col() +
+  coord_flip() +
+  labs(title = "Variable Importance (%IncMSE)", x = "Variable", y = "%IncMSE")
+
+#Racial Makeup count of counties
 count_by_group <- predict_cn_subset |> 
   count(racial_makeup, name = "n_counties") |> 
   arrange(desc(n_counties))
@@ -494,7 +497,7 @@ rf_subset_bw <- bw_counties |>
 
 rf_subset_bw <- na.omit(rf_subset_bw)
 
-
+#Random Forest for White, Hispanic Counties
 set.seed(42)
 rf_model_wh <- randomForest(
   preventable_hospital_stays_raw_value ~ .,
@@ -503,14 +506,65 @@ rf_model_wh <- randomForest(
   ntree = 500
 )
 
-#PLOT
 varImpPlot(rf_model_wh)
 
-#TABLE
+importance(rf_model_wh)
+
+#Random Forest for White, Black Counties
+set.seed(42)
+rf_model_wb <- randomForest(
+  preventable_hospital_stays_raw_value ~ .,
+  data = rf_subset_wb,
+  importance = TRUE,
+  ntree = 500
+)
+
+varImpPlot(rf_model_wb)
+
+importance(rf_model_wb)
+
+#Random Forest for White, AIAN Counties
+set.seed(42)
+rf_model_waian <- randomForest(
+  preventable_hospital_stays_raw_value ~ .,
+  data = rf_subset_waian,
+  importance = TRUE,
+  ntree = 500
+)
+
+varImpPlot(rf_model_waian)
+
+importance(rf_model_waian)
+
+#Random Forest for Hispanic, White Counties
+set.seed(42)
+rf_model_hw <- randomForest(
+  preventable_hospital_stays_raw_value ~ .,
+  data = rf_subset_hw,
+  importance = TRUE,
+  ntree = 500
+)
+
+varImpPlot(rf_model_hw)
+
+importance(rf_model_hw)
+
+#Random Forest for Black, White Counties
+set.seed(42)
+rf_model_bw <- randomForest(
+  preventable_hospital_stays_raw_value ~ .,
+  data = rf_subset_bw,
+  importance = TRUE,
+  ntree = 500
+)
+
+varImpPlot(rf_model_bw)
+
 importance(rf_model_bw)
 
-predict_cn_subset <- na.omit(predict_cn_subset)
+#Scatterplots with regression lines
 
+predict_cn_subset <- na.omit(predict_cn_subset)
 
 ggplot(data = predict_cn_subset, 
        aes(x = high_school_completion_raw_value, y = preventable_hospital_stays_raw_value)) +
@@ -556,7 +610,7 @@ combined_rf_subset <- rbind(
 
 
 #RACIAL GROUP SUBSET
-combined_rf_subset <- combined_rf_subset %>%
+combined_rf_subset <- combined_rf_subset |> 
   mutate(group = dplyr::recode(as.character(group),
                                "wh" = "White-Hispanic",
                                "wb" = "White-Black",
@@ -638,24 +692,23 @@ range(combined_rf_subset$uninsured_raw_value, na.rm = TRUE)
 
 
 set.seed(123)
-map_data <- map_data %>%
+map_data <- map_data |> 
   mutate(
-    percent_rural_raw_value_jit = jitter(percent_rural_raw_value, amount = 0.01)
+    percent_disability_functional_limitations_raw_value_jit = jitter(percent_disability_functional_limitations_raw_value, amount = 0.01)
   )
 
 
 map_data_bi <- bi_class(
   map_data,
-  x = preventable_hospital_stays_raw_value,      # First variable
-  y = percent_rural_raw_value_jit,                   # Second variable
-  style = "quantile",                            # Categorizes by quantiles
-  dim = 3                                        # 3x3 grid (9 bivariate classes)
+  x = preventable_hospital_stays_raw_value,
+  y = percent_disability_functional_limitations_raw_value_jit,
+  style = "quantile",                           
 )
 
-library(dplyr)
+
 
 # Replace 'state' with the actual column name if it's different
-map_data_bi_continental <- map_data_bi %>%
+map_data_bi_continental <- map_data_bi |> 
   filter(!STATE_NAME %in% c("Hawaii", "Alaska"))
 
 
@@ -667,7 +720,7 @@ bimap <- ggplot() +
   ) +
   bi_scale_fill(pal = "GrPink", dim = 3) +
   labs(
-    title = "Preventable Hospital Stays & Percent Rural (US Counties)"
+    title = "Preventable Hospital Stays & Percent Disability (US Counties)"
   ) +
   bi_theme() +
   theme(
@@ -681,17 +734,17 @@ legend <- bi_legend(
   pal = "GrPink",
   dim = 3,
   xlab = "Higher Preventable Hospital Stays",
-  ylab = "Higher % Rural",
+  ylab = "Higher % Disability",
   size = 6
 )
 
 ggsave("bivariate_county_map.png", plot = last_plot(), width = 12, height = 8, dpi = 300)
 
+
 ggdraw() +
   draw_plot(bimap, 0, 0, 1, 1) +
-  draw_plot(legend, 0.7, 0.7, 0.2, 0.2) +
+  draw_plot(legend, 0.75, 0.15, 0.2, 0.2) + 
   theme(text = element_text(size = 10))
-
 
 
 
