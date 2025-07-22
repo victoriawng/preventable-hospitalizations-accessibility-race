@@ -16,7 +16,6 @@ library(sf)
 library(randomForest)
 library(biscale)
 library(cowplot)
-library(DiagrammeR)
 library(rpart)
 library(rpart.plot)
 
@@ -200,8 +199,6 @@ ggplot() +
 
 #Race Data
 
-
-
 race_cols <- c( #RUN THIS
   "percent_american_indian_or_alaska_native_raw_value",
   "percent_asian_raw_value",
@@ -211,29 +208,46 @@ race_cols <- c( #RUN THIS
   "percent_non_hispanic_white_raw_value"
 )
 
-racial_makeup <- cn_counties_national_subset |> #RUN THIS
+threshold_top1 <- 0.7
+threshold_top2 <- 0.6
+
+race_ranks <- cn_counties_national_subset |>
   pivot_longer(
     cols = all_of(race_cols),
     names_to = "race",
     values_to = "percent"
-  ) |> 
-  group_by(state_fips_code, county_fips_code) |> 
-  arrange(state_fips_code, county_fips_code, desc(percent)) |> 
-  slice_head(n = 2) |> 
+  ) |>
+  group_by(state_fips_code, county_fips_code) |>
+  arrange(desc(percent)) |>
+  mutate(rank = row_number()) |>
+  ungroup()
+
+top_races_summary <- race_ranks |>
+  filter(rank <= 2) |>
+  group_by(state_fips_code, county_fips_code) |>
   summarise(
-    racial_makeup = paste(
-      gsub(
-        "percent_|_raw_value", 
-        "", 
-        race
-      ),
+    top_races = paste0(
+      gsub("percent_|_raw_value", "", race),
       collapse = ", "
     ),
+    top1_race = gsub("percent_|_raw_value", "", race[1]),
+    top1_percent = percent[1],
+    top2_total_percent = sum(percent, na.rm = TRUE),
     .groups = "drop"
-  )
+  ) |>
+  mutate(
+    racial_makeup = case_when(
+      top1_percent >= threshold_top1 ~ top1_race,
+      top2_total_percent >= threshold_top2 ~ top_races,
+      TRUE ~ "no clear racial majority"
+    )
+  ) |>
+  select(state_fips_code, county_fips_code, racial_makeup)
 
-cn_counties_national_subset <- cn_counties_national_subset |>  #RUN THIS
-  left_join(racial_makeup, by = c("state_fips_code", "county_fips_code"))
+
+cn_counties_national_subset <- cn_counties_national_subset |>
+  left_join(top_races_summary, by = c("state_fips_code", "county_fips_code"))
+
 
 
 
@@ -372,6 +386,19 @@ aianw_counties <- predict_cn_subset |>
 wa_counties <- predict_cn_subset |> 
   filter(racial_makeup == "non_hispanic_white, asian")
 
+poc_counties <- predict_cn_subset |> 
+  filter(racial_makeup %in% c(
+    "non_hispanic_black, non_hispanic_white",
+    "hispanic, non_hispanic_white",
+    "hispanic",
+    "non_hispanic_black"
+  ))
+
+
+
+
+
+
 #White Majority
 rf_subset_w <- w_counties |> 
   select(primary_care_physicians_raw_value,
@@ -493,6 +520,18 @@ rf_subset_wa <- wa_counties |>
 
 rf_subset_wa <- na.omit(rf_subset_wa)
 
+#POC Majority
+rf_subset_poc <- poc_counties |> 
+  select(primary_care_physicians_raw_value,
+         uninsured_raw_value, mental_health_providers_raw_value, dentists_raw_value, 
+         other_primary_care_providers_raw_value, mammography_screening_raw_value,
+         severe_housing_problems_raw_value, high_school_completion_raw_value,
+         percent_disability_functional_limitations_raw_value, percent_not_proficient_in_english_raw_value,
+         percent_rural_raw_value, income_inequality_raw_value,
+         preventable_hospital_stays_raw_value, unemployment_raw_value)
+
+rf_subset_poc <- na.omit(rf_subset_poc)
+
 #READABLE VARIABLE NAMES
 # Variable name mapping
 var_name_lookup <- c(
@@ -521,9 +560,6 @@ rf_model_w <- randomForest(
   ntree = 500
 )
 
-varImpPlot(rf_model_w)
-
-importance(rf_model_w)
 
 imp_w <- importance(rf_model_w)
 imp_df_w <- data.frame(
@@ -538,9 +574,10 @@ ggplot(imp_df_w, aes(x = reorder(Variable, Importance), y = Importance, fill = V
   geom_col(show.legend = FALSE) +
   coord_flip() +
   labs(
-    title = "Most Important Variables (White Majority Counties)",
+    title = "Disability and High School Completion Rates among Top Predictors in White Majority Counties",
     x = "Predictor",
-    y = "%IncMSE"
+    y = "% Increase in Mean Squared Error",
+    caption = "Figure 1: Random Forest variable importance among White Majority Counties"
   ) +
   scale_fill_brewer(palette = "Set2") +
   theme_minimal(base_size = 14)+
@@ -556,9 +593,6 @@ rf_model_h <- randomForest(
   ntree = 500
 )
 
-varImpPlot(rf_model_h)
-
-importance(rf_model_h)
 
 imp_h <- importance(rf_model_h)
 imp_df_h <- data.frame(
@@ -591,9 +625,6 @@ rf_model_b <- randomForest(
   ntree = 500
 )
 
-varImpPlot(rf_model_b)
-
-importance(rf_model_b)
 
 imp_b <- importance(rf_model_b)
 imp_df_b <- data.frame(
@@ -626,9 +657,6 @@ rf_model_wh <- randomForest(
   ntree = 500
 )
 
-varImpPlot(rf_model_wh)
-
-importance(rf_model_wh)
 
 imp_wh <- importance(rf_model_wh)
 imp_df_wh <- data.frame(
@@ -661,9 +689,6 @@ rf_model_wb <- randomForest(
   ntree = 500
 )
 
-varImpPlot(rf_model_wb)
-
-importance(rf_model_wb)
 
 imp_wb <- importance(rf_model_wb)
 imp_df_wb <- data.frame(
@@ -696,9 +721,6 @@ rf_model_waian <- randomForest(
   ntree = 500
 )
 
-varImpPlot(rf_model_waian)
-
-importance(rf_model_waian)
 
 imp_waian <- importance(rf_model_waian)
 imp_df_waian <- data.frame(
@@ -731,9 +753,6 @@ rf_model_hw <- randomForest(
   ntree = 500
 )
 
-varImpPlot(rf_model_hw)
-
-importance(rf_model_hw)
 
 imp_hw <- importance(rf_model_hw)
 imp_df_hw <- data.frame(
@@ -766,10 +785,6 @@ rf_model_bw <- randomForest(
   ntree = 500
 )
 
-varImpPlot(rf_model_bw)
-
-importance(rf_model_bw)
-
 imp_bw <- importance(rf_model_bw)
 imp_df_bw <- data.frame(
   Variable = rownames(imp_bw),
@@ -801,9 +816,6 @@ rf_model_aianw <- randomForest(
   ntree = 500
 )
 
-varImpPlot(rf_model_aianw)
-
-importance(rf_model_aianw)
 
 imp_aianw <- importance(rf_model_aianw)
 imp_df_aianw <- data.frame(
@@ -836,9 +848,6 @@ rf_model_wa <- randomForest(
   ntree = 500
 )
 
-varImpPlot(rf_model_wa)
-
-importance(rf_model_wa)
 
 imp_wa <- importance(rf_model_wa)
 imp_df_wa <- data.frame(
@@ -861,6 +870,40 @@ ggplot(imp_df_wa, aes(x = reorder(Variable, Importance), y = Importance, fill = 
   theme_minimal(base_size = 14)+
   theme(panel.background = element_rect(fill = "white", color = NA), 
         plot.background = element_rect(fill = "white", color = NA))
+
+#Random Forest for POC Counties
+set.seed(42)
+rf_model_poc <- randomForest(
+  preventable_hospital_stays_raw_value ~ .,
+  data = rf_subset_poc,
+  importance = TRUE,
+  ntree = 500
+)
+
+
+imp_poc <- importance(rf_model_poc)
+imp_df_poc <- data.frame(
+  Variable = rownames(imp_poc),
+  Importance = imp_poc[,"%IncMSE"]
+) |> 
+  mutate(Variable = str_replace_all(Variable, var_name_lookup)) |> 
+  arrange(desc(Importance)) |> 
+  slice_head(n = 5)
+
+ggplot(imp_df_poc, aes(x = reorder(Variable, Importance), y = Importance, fill = Variable)) +
+  geom_col(show.legend = FALSE) +
+  coord_flip() +
+  labs(
+    title = "Limited English Proficiency Top Predictor among POC Majority Counties",
+    x = "Predictor",
+    y = "% Increase in Mean Squared Error",
+    caption = "Figure 2: Random Forest variable importance among POC Majority Counties"
+  ) +
+  scale_fill_brewer(palette = "Set2") +
+  theme_minimal(base_size = 14)+
+  theme(panel.background = element_rect(fill = "white", color = NA), 
+        plot.background = element_rect(fill = "white", color = NA))
+
 
 #Scatterplots with regression lines
 
@@ -999,14 +1042,14 @@ range(combined_rf_subset$uninsured_raw_value, na.rm = TRUE)
 set.seed(123)
 map_data <- map_data |> 
   mutate(
-    mental_health_providers_jit = jitter(mental_health_providers_raw_value, amount = 0.01)
+    high_school_completion_jit = jitter(high_school_completion_raw_value, amount = 0.01)
   )
 
 
 map_data_bi <- bi_class(
   map_data,
   x = preventable_hospital_stays_raw_value,
-  y = mental_health_providers_jit,
+  y = high_school_completion_jit,
   style = "quantile",                           
 )
 
@@ -1025,7 +1068,7 @@ bimap <- ggplot() +
   ) +
   bi_scale_fill(pal = "GrPink", dim = 3) +
   labs(
-    title = "Preventable Hospital Stays & Mental Health Providers (US Counties)"
+    title = "Increased Preventable Hospital Stays among counties with lower High School Completion Rates (US Counties)"
   ) +
   bi_theme() +
   theme(
@@ -1039,7 +1082,7 @@ legend <- bi_legend(
   pal = "GrPink",
   dim = 3,
   xlab = "Preventable Hospital Stays",
-  ylab = "# of Mental Health Providers",
+  ylab = "High School Completion Rate",
   size = 6
 )
 
@@ -1050,7 +1093,7 @@ ggdraw() +
   theme(text = element_text(size = 10))
 
 
-ggsave("decision_tree.png", plot = last_plot(), width = 12, height = 8, dpi = 300)
+ggsave("hs_phs_choropleth_map.png", plot = last_plot(), width = 12, height = 8, dpi = 300)
 
 imp_rfnr <- importance(rfnr_model)
 imp_df_rfnr <- data.frame(
@@ -1075,48 +1118,8 @@ ggplot(imp_df_rfnr, aes(x = reorder(Variable, Importance), y = Importance, fill 
         plot.background = element_rect(fill = "white", color = NA))
 
 
-label_map <- c(
-  primary_care_physicians_raw_value = "Primary Care Physicians",
-  uninsured_raw_value = "Uninsured Rate",
-  mental_health_providers_raw_value = "Mental Health Providers",
-  other_primary_care_providers_raw_value = "Other Primary Care Providers",
-  dentists_raw_value = "Dentists",
-  mammography_screening_raw_value = "Mammography Screening",
-  severe_housing_problems_raw_value = "Severe Housing Problems",
-  high_school_completion_raw_value = "High School Completion",
-  percent_disability_functional_limitations_raw_value = "Disability (Functional Limitations)",
-  percent_not_proficient_in_english_raw_value = "Limited English Proficiency",
-  percent_rural_raw_value = "Percent Rural",
-  unemployment_raw_value = "Unemployment Rate",
-  preventable_hospital_stays_raw_value = "Preventable Hospital Stays"
-)
-
-rfnr_subset_pretty <- rfnr_subset
-names(rfnr_subset_pretty) <- label_map[names(rfnr_subset_pretty)]
 
 
-rpart_model <- rpart(`Preventable Hospital Stays` ~ ., data = rfnr_subset_pretty)
-
-decision_tree <- rpart.plot(
-  rpart_model,
-  type = 4,       
-  extra = 101,     
-  main = "Decision Tree for Predicting Preventable Hospital Stays", 
-  box.palette = "Blues",  
-  fallen.leaves = TRUE
-)
 
 
-png("decision_tree.png", width = 12, height = 8, units = "in", res = 300)
-
-rpart.plot(
-  rpart_model,
-  type = 4,
-  extra = 101,
-  main = "Decision Tree for Predicting Preventable Hospital Stays",
-  box.palette = "Blues",
-  fallen.leaves = TRUE
-)
-
-dev.off()  # close the graphics device
 
