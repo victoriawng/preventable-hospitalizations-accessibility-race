@@ -16,6 +16,9 @@ library(sf)
 library(randomForest)
 library(biscale)
 library(cowplot)
+library(DiagrammeR)
+library(rpart)
+library(rpart.plot)
 
 county_data <- read_csv("data/analytic_data2025_v2.csv") #FOR RUNNING ARTURO MODELS
 
@@ -327,6 +330,8 @@ ggplot(imp_df_nr, aes(x = reorder(Variable, Importance), y = Importance)) +
   geom_col() +
   coord_flip() +
   labs(title = "Variable Importance (%IncMSE)", x = "Variable", y = "%IncMSE")
+
+
 
 #Racial Makeup count of counties
 count_by_group <- predict_cn_subset |> 
@@ -1045,7 +1050,7 @@ ggdraw() +
   theme(text = element_text(size = 10))
 
 
-ggsave("vip_wh.png", plot = last_plot(), width = 12, height = 8, dpi = 300)
+ggsave("decision_tree.png", plot = last_plot(), width = 12, height = 8, dpi = 300)
 
 imp_rfnr <- importance(rfnr_model)
 imp_df_rfnr <- data.frame(
@@ -1068,4 +1073,50 @@ ggplot(imp_df_rfnr, aes(x = reorder(Variable, Importance), y = Importance, fill 
   theme_minimal(base_size = 14)+
   theme(panel.background = element_rect(fill = "white", color = NA), 
         plot.background = element_rect(fill = "white", color = NA))
+
+
+label_map <- c(
+  primary_care_physicians_raw_value = "Primary Care Physicians",
+  uninsured_raw_value = "Uninsured Rate",
+  mental_health_providers_raw_value = "Mental Health Providers",
+  other_primary_care_providers_raw_value = "Other Primary Care Providers",
+  dentists_raw_value = "Dentists",
+  mammography_screening_raw_value = "Mammography Screening",
+  severe_housing_problems_raw_value = "Severe Housing Problems",
+  high_school_completion_raw_value = "High School Completion",
+  percent_disability_functional_limitations_raw_value = "Disability (Functional Limitations)",
+  percent_not_proficient_in_english_raw_value = "Limited English Proficiency",
+  percent_rural_raw_value = "Percent Rural",
+  unemployment_raw_value = "Unemployment Rate",
+  preventable_hospital_stays_raw_value = "Preventable Hospital Stays"
+)
+
+rfnr_subset_pretty <- rfnr_subset
+names(rfnr_subset_pretty) <- label_map[names(rfnr_subset_pretty)]
+
+
+rpart_model <- rpart(`Preventable Hospital Stays` ~ ., data = rfnr_subset_pretty)
+
+decision_tree <- rpart.plot(
+  rpart_model,
+  type = 4,       
+  extra = 101,     
+  main = "Decision Tree for Predicting Preventable Hospital Stays", 
+  box.palette = "Blues",  
+  fallen.leaves = TRUE
+)
+
+
+png("decision_tree.png", width = 12, height = 8, units = "in", res = 300)
+
+rpart.plot(
+  rpart_model,
+  type = 4,
+  extra = 101,
+  main = "Decision Tree for Predicting Preventable Hospital Stays",
+  box.palette = "Blues",
+  fallen.leaves = TRUE
+)
+
+dev.off()  # close the graphics device
 
