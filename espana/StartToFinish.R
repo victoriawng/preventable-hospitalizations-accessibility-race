@@ -15,7 +15,12 @@ library(knitr)
 library(DHARMa)
 library(sandwich)
 library(lmtest)
-source("EDA_import.R")
+library(readxl)
+library(tidyverse)
+
+national_data = read_csv("analytic_data2025_v2.csv")
+
+
 
 # Cleaning variables names
 data <- national_data |>
@@ -113,7 +118,7 @@ no_na_data <- data_clean |>
     pop_black,
     pop_hispanic
   ))
-
+dim(no_na_data)
 # Drop rows with any remaining NAs
 done_data <- no_na_data |>
   drop_na()
@@ -139,11 +144,157 @@ analysis_data <- done_data |>
   mutate(across(c(uninsured_raw_value, percent_rural_raw_value, 
                   high_school_completion_raw_value),
                 ~ ./100))
-
+dim(analysis_data)
 
 
 ######## EDA 
 
+
+# histogram
+library(patchwork)
+library(ggridges)
+# Select continuous predictors for visualization
+predictors <- c(
+  "physician_supply_per_10k",
+  "mental_health_providers_per_10k",
+  "dentists_per_10k",
+  "uninsured_raw_value",
+  "mammography_screening_white",
+  "mammography_screening_poc",
+  "income_inequality",
+  "unemployment_rate",
+  "percent_rural_raw_value",
+  "high_school_completion_raw_value"
+)
+
+# Create custom labels for plots
+predictor_labels <- c(
+  "Primary Care Physicians\n(per 10k)",
+  "Mental Health Providers\n(per 10k)",
+  "Dentists\n(per 10k)",
+  "Uninsured Rate",
+  "Mammography Screening\n(White)",
+  "Mammography Screening\n(POC)",
+  "Income Inequality\n(Gini Index)",
+  "Unemployment Rate",
+  "Percent Rural",
+  "High School Completion"
+)
+
+# Create histogram grid with density ridges
+eda_plots <- lapply(seq_along(predictors), function(i) {
+  var <- predictors[i]
+  label <- predictor_labels[i]
+  
+  # Base plot
+  p <- ggplot(analysis_data, aes_string(x = var)) +
+    geom_histogram(aes(y = after_stat(density)),
+                   fill = "#1f77b4", 
+                   color = "white",
+                   bins = 30,
+                   alpha = 0.8) +
+    geom_density(color = "#ff7f0e", 
+                 linewidth = 1) +
+    labs(x = label, y = "Density") +
+    theme_minimal(base_size = 12) +
+    theme(
+      axis.text.y = element_blank(),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor.y = element_blank()
+    )
+  
+  # Add log-scale if needed (for highly skewed variables)
+  if (median(analysis_data[[var]], na.rm = TRUE) < 
+      mean(analysis_data[[var]], na.rm = TRUE)) {
+    p <- p + scale_x_continuous(
+      trans = scales::pseudo_log_trans(),
+      breaks = scales::breaks_extended(5)
+    )
+  }
+  
+  return(p)
+})
+
+# Arrange plots in grid
+histo <- wrap_plots(eda_plots, ncol = 3) +
+  plot_annotation(
+    title = "Figure 1. Distribution of Healthcare Access and Socioeconomic Predictors",
+    theme = theme(
+      plot.title = element_text(face = "bold", size = 14),
+      plot.subtitle = element_text(size = 12)
+    )
+  )
+
+histo
+
+
+### violin plot dis. 
+
+# Create violin plot for preventable hospital stays by race
+violin_plot <- analysis_data %>%
+  # Calculate rates per 10,000 population
+  mutate(
+    rate_white = preventable_hospital_stays_white,
+    rate_poc = preventable_hospital_stays_poc
+  ) %>%
+  # Reshape for plotting
+  pivot_longer(
+    cols = c(rate_white, rate_poc),
+    names_to = "group",
+    values_to = "hospitalization_rate"
+  ) %>%
+  mutate(
+    group = factor(ifelse(group == "rate_white", "White", "POC")),
+    group = fct_relevel(group, "White", "POC")  # Set White as first level
+  ) %>%
+  # Create plot
+  ggplot(aes(x = group, y = hospitalization_rate, fill = group)) +
+  geom_violin(
+    alpha = 0.7, 
+    draw_quantiles = c(0.25, 0.5, 0.75),  # Show quartiles
+    trim = FALSE,  # Show full range of data
+    color = "white",  # Outline color
+    linewidth = 0.5  # Outline thickness
+  ) +
+  geom_boxplot(
+    width = 0.1, 
+    fill = "white", 
+    outlier.shape = NA  # Hide outliers (already shown in violin)
+  ) +
+  scale_fill_manual(
+    values = c("White" = "#377eb8", "POC" = "#e41a1c"),  # Consistent colors
+    guide = "none"  # Hide legend (redundant with x-axis labels)
+  ) +
+  labs(
+    #title = "Preventable Hospitalization Rates by Racial Group",
+    subtitle = "Hospital stays per 100,000 population (county-level rates)",
+    x = "Racial Group",
+    y = "Hospital Stays per 10,000 Population"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5, size = 11),
+    axis.title.x = element_text(face = "bold", margin = margin(t = 10)),
+    axis.title.y = element_text(face = "bold", margin = margin(r = 10)),
+    panel.grid.major.x = element_blank(),  # No vertical gridlines
+    panel.grid.minor.y = element_blank()   # Only major horizontal gridlines
+  ) +
+  # Add mean markers
+  stat_summary(
+    fun = mean, 
+    geom = "point", 
+    shape = 23, 
+    size = 3,  
+    fill = "yellow", 
+    color = "black"
+  )
+
+# Display the plot
+print(violin_plot)
+
+
+###
 access_vars <- c(
   "physician_supply_per_10k",
   "mental_health_providers_per_10k",
@@ -210,7 +361,7 @@ plot_data <- analysis_data |>
   )
 
 # Plot
-ggplot(plot_data) +
+p1 <- ggplot(plot_data) +
   geom_point(aes(
     x = uninsured_pct,
     y = rate_white,
@@ -240,7 +391,7 @@ ggplot(plot_data) +
   ) +
   scale_color_manual(values = c("White" = "#377eb8", "POC" = "#e41a1c")) +
   theme_minimal()
-
+p1
 
 # map visualization
 library(usmap)
@@ -262,7 +413,7 @@ state_map_data <- analysis_data |>
   )
 
 # Step 2: Plot state-level disparity ratios
-plot_usmap(data = state_map_data, values = "disparity_ratio", regions = "states") +
+p2 <- plot_usmap(data = state_map_data, values = "disparity_ratio", regions = "states") +
   scale_fill_viridis_c(
     name = "Disparity Ratio\n(POC / White)",
     option = "magma",
@@ -271,7 +422,7 @@ plot_usmap(data = state_map_data, values = "disparity_ratio", regions = "states"
     labels = c("0.5x", "1x", "2x")
   ) +
   labs(
-    title = "State-Level Disparities in Preventable Hospital Stays",
+    title = "Figure 4. State-Level Disparities in Preventable Hospital Stays",
     subtitle = "Ratio of POC to White hospitalization rates"
   ) +
   theme(legend.position = "right")
@@ -301,7 +452,7 @@ cor_long <- as.data.frame(cor_matrix) |>
   pivot_longer(-Var1, names_to = "Var2", values_to = "Correlation")
 
 # Plot using ggplot2
-ggplot(cor_long, aes(x = Var1, y = Var2, fill = Correlation)) +
+p3 <- ggplot(cor_long, aes(x = Var1, y = Var2, fill = Correlation)) +
   geom_tile(color = "white") +
   scale_fill_gradient2(
     low = "#d73027", high = "#1a9850", mid = "white", 
@@ -318,7 +469,9 @@ ggplot(cor_long, aes(x = Var1, y = Var2, fill = Correlation)) +
     axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
     plot.title = element_text(hjust = 0.5),
     panel.grid = element_blank()
-  )
+  ) + 
+  labs(
+    title = "Figure 3. State-Level Disparities in Preventable Hospital Stays")
 
 # racial disaprities in outcome 
 analysis_data |>
@@ -369,7 +522,7 @@ var_labels <- c(
 
 percent_vars <- c("high_school_completion_raw_value") 
 
-analysis_data |>
+p4 <- analysis_data |>
   mutate(insured_group = ifelse(uninsured_raw_value > median(uninsured_raw_value, na.rm = TRUE), "Uninsured", "Insured")) |>
   pivot_longer(cols = all_of(access_vars), names_to = "factor", values_to = "value") |>
   group_by(factor, insured_group) |>
@@ -460,7 +613,9 @@ bind_rows(
     color = "Racial Group"
   ) +
   scale_color_brewer(palette = "Set1") +
-  theme_minimal()
+  theme_light() +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
 
 ########### Modeling
 
@@ -688,4 +843,325 @@ ggplot(combined_irrs, aes(x = IRR, y = fct_reorder(Variable, IRR), color = Race)
   theme(plot.title = element_text(hjust = 0.5))
 
 
+#####
+library(dplyr)
+library(forcats)
+library(knitr)
 
+# Assuming result_white and result_poc were already created using `summarize_model()` and cleaned
+
+# Rename variables for readability
+rename_vars <- function(df) {
+  df |>
+    mutate(Variable = case_when(
+      Variable == "physician_supply_per_10k" ~ "Physician Supply",
+      Variable == "mental_health_providers_per_10k" ~ "Mental Health Providers",
+      Variable == "dentists_per_10k" ~ "Dentists Supply",
+      Variable == "uninsured_raw_value" ~ "Uninsured Rate",
+      Variable == "mammography_screening_white" ~ "Mammography (White)",
+      Variable == "mammography_screening_poc" ~ "Mammography (POC)",
+      Variable == "income_inequality" ~ "Income Inequality",
+      Variable == "log_unemployment" ~ "Unemployment",
+      Variable == "percent_rural_raw_value" ~ "% Rural",
+      Variable == "high_school_completion_raw_value" ~ "HS Completion",
+      TRUE ~ Variable
+    ))
+}
+
+# Apply renaming
+result_white_clean <- rename_vars(result_white)
+result_poc_clean <- rename_vars(result_poc)
+
+# Combine and rank within group
+combined_irrs <- bind_rows(result_white_clean, result_poc_clean) %>%
+  group_by(Race) %>%
+  arrange(desc(IRR), .by_group = TRUE) %>%
+  mutate(`Impact Rank` = row_number()) %>%
+  ungroup()
+
+# Display as table
+combined_irrs %>%
+  dplyr::select(Race, `Impact Rank`, Variable, IRR, Lower, Upper) %>%
+  knitr::kable(digits = 3, caption = "Ranked IRRs for Preventable Hospital Stays by Race")
+
+
+library(kableExtra)
+
+combined_irrs %>%
+  dplyr::select(Race, `Impact Rank`, Variable, IRR, Lower, Upper) %>%
+  mutate(
+    IRR = round(IRR, 2),
+    Lower = round(Lower, 2),
+    Upper = round(Upper, 2)
+  ) %>%
+  arrange(Race, `Impact Rank`) %>%
+  kable("html", caption = "Ranked IRRs for Preventable Hospital Stays by Race") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover", "condensed"), font_size = 14) %>%
+  column_spec(3, bold = TRUE) %>%
+  row_spec(0, bold = TRUE, background = "#f2f2f2") %>%
+  add_header_above(c(" " = 2, "Predictor" = 1, "Incidence Rate Ratio (IRR)" = 3))
+
+
+
+## poster
+library(dplyr)
+library(forcats)
+library(knitr)
+library(kableExtra)
+
+# Rename variables for readability
+rename_vars <- function(df) {
+  df %>%
+    mutate(Variable = case_when(
+      Variable == "physician_supply_per_10k" ~ "Physician Supply",
+      Variable == "mental_health_providers_per_10k" ~ "Mental Health Providers",
+      Variable == "dentists_per_10k" ~ "Dentists Supply",
+      Variable == "uninsured_raw_value" ~ "Uninsured Rate",
+      Variable == "mammography_screening_white" ~ "Mammography (White)",
+      Variable == "mammography_screening_poc" ~ "Mammography (POC)",
+      Variable == "income_inequality" ~ "Income Inequality",
+      Variable == "log_unemployment" ~ "Unemployment",
+      Variable == "percent_rural_raw_value" ~ "% Rural",
+      Variable == "high_school_completion_raw_value" ~ "HS Completion",
+      TRUE ~ Variable
+    ))
+}
+
+# Apply renaming
+result_white_clean <- rename_vars(result_white)
+result_poc_clean <- rename_vars(result_poc)
+
+# Combine and adjust IRRs for interpretation
+combined_irrs <- bind_rows(result_white_clean, result_poc_clean) %>%
+  mutate(
+    IRR_adj = case_when(
+      Variable %in% c("Unemployment", "HS Completion") ~ IRR / 10,
+      TRUE ~ IRR
+    ),
+    `Effect on Stays` = ifelse(
+      IRR_adj > 1,
+      paste0("+", round((IRR_adj - 1) * 100), "% increase"),
+      paste0("-", round((1 - IRR_adj) * 100), "% decrease")
+    )
+  )
+
+# Select top 3 increases and top 3 decreases for each race
+top_effects <- combined_irrs %>%
+  group_by(Race) %>%
+  arrange(desc(IRR_adj)) %>%
+  slice_head(n = 3) %>%
+  bind_rows(
+    combined_irrs %>%
+      group_by(Race) %>%
+      arrange(IRR_adj) %>%
+      slice_head(n = 3)
+  ) %>%
+  ungroup() %>%
+  arrange(Race, desc(IRR_adj))
+
+# Display in RStudio Viewer
+top_effects %>%
+  dplyr::select(Race, Variable, `Effect on Stays`) %>%
+  kable("html", caption = "Top 3 Increases and Decreases in Preventable Hospital Stays by Race") %>%
+  kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped", "hover", "condensed"),
+    font_size = 14
+  ) %>%
+  row_spec(0, bold = TRUE, background = "#f0f0f0") %>%
+  column_spec(2, bold = TRUE)
+
+
+#### figure 2/3
+# Load required libraries
+library(ggplot2)
+library(dplyr)
+library(forcats)
+library(usmap)
+library(viridis)
+library(glue)
+
+### Figure 2: Adjusted IRR Comparison Plot ###
+
+# Create cleaned IRR data frame with scaling adjustments
+irr_data <- bind_rows(result_white, result_poc) %>%
+  mutate(
+    Variable = case_when(
+      Variable == "physician_supply_per_10k" ~ "Physician Supply",
+      Variable == "mental_health_providers_per_10k" ~ "Mental Health Providers",
+      Variable == "dentists_per_10k" ~ "Dentists",
+      Variable == "uninsured_raw_value" ~ "Uninsured Rate",
+      Variable == "mammography_screening_white" ~ "Mammography",
+      Variable == "mammography_screening_poc" ~ "Mammography",
+      Variable == "income_inequality" ~ "Income Inequality",
+      Variable == "log_unemployment" ~ "Unemployment",
+      Variable == "percent_rural_raw_value" ~ "% Rural",
+      Variable == "high_school_completion_raw_value" ~ "HS Completion ",
+      TRUE ~ Variable
+    ),
+    Race = factor(Race, levels = c("White", "POC")),
+    # Apply scaling factors
+    IRR = case_when(
+      str_detect(Variable, "Unemployment") ~ IRR^(1/2),
+      str_detect(Variable, "HS Completion") ~ IRR^(1/2),
+      TRUE ~ IRR
+    ),
+    Lower = case_when(
+      str_detect(Variable, "Unemployment") ~ Lower^(1/2),
+      str_detect(Variable, "HS Completion") ~ Lower^(1/2),
+      TRUE ~ Lower
+    ),
+    Upper = case_when(
+      str_detect(Variable, "Unemployment") ~ Upper^(1/2),
+      str_detect(Variable, "HS Completion") ~ Upper^(1/2),
+      TRUE ~ Upper
+    )
+  )
+
+# Create the plot with minimal grid lines
+figure2 <- ggplot(irr_data, 
+                  aes(x = IRR, 
+                      y = fct_reorder(Variable, IRR, .fun = max), 
+                      color = Race)) +
+  geom_point(size = 3, position = position_dodge(width = 0.5)) +
+  geom_errorbarh(aes(xmin = Lower, xmax = Upper),
+                 height = 0.2,
+                 position = position_dodge(width = 0.5)) +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "gray40") +
+  scale_color_manual(values = c("White" = "#377eb8", "POC" = "#e41a1c")) +
+  scale_x_continuous(breaks = seq(0.5, 3, by = 0.5)) +
+  labs(
+    title = "Figure 2: Healthcare Access Predictors of Preventable Hospital Stays",
+    subtitle = "Adjusted Incidence Rate Ratios (IRRs) with 95% Confidence Intervals",
+    x = "Adjusted IRR (Higher values indicate stronger association)",
+    y = "Predictor Variable",
+    color = "Racial Group"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 10),
+    plot.caption = element_text(hjust = 0, size = 9, face = "italic"),
+    panel.grid.major.x = element_line(color = "gray90", linewidth = 0.2),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    axis.line.x = element_line(color = "black"),
+    legend.position = "top"
+  )
+
+print(figure2)
+
+### Figure 3: State-Level Disparity Choropleth (Fixed) ###
+
+library(usmap)
+library(ggplot2)
+library(glue)
+
+# Prepare state-level data
+state_map_data <- analysis_data %>%
+  group_by(state_abbreviation) %>%
+  summarize(
+    white_rate = sum(preventable_hospital_stays_white, na.rm = TRUE) / 
+      sum(pop_white, na.rm = TRUE) * 10000,
+    poc_rate = sum(preventable_hospital_stays_poc, na.rm = TRUE) / 
+      sum(pop_poc, na.rm = TRUE) * 10000,
+    disparity_ratio = poc_rate / white_rate
+  ) %>%
+  filter(
+    is.finite(disparity_ratio),
+    !is.na(state_abbreviation),
+    disparity_ratio > 0
+  ) %>%
+  rename(state = state_abbreviation)
+
+# Calculate national average disparity ratio
+national_avg <- round(mean(state_map_data$disparity_ratio), 2)
+
+# Plot
+figure3 <- plot_usmap(data = state_map_data, values = "disparity_ratio", regions = "states") +
+  scale_fill_viridis_c(
+    name = "POC-to-White Rate Ratio",
+    option = "plasma",
+    trans = "log10",
+    breaks = c(0.5, 1, 2),
+    labels = c("0.5x", "1x", "2x")
+  ) +
+  labs(
+    title = "Figure 3: Racial Disparities in Preventable Hospital Stays by State",
+    subtitle = glue("POC-to-White Rate Ratio (National Avg = {national_avg})")
+  ) +
+  theme(legend.position = "right")
+
+# Print the figure
+print(figure3)
+
+
+
+
+
+### visual:
+library(ggplot2)
+library(dplyr)
+
+# Create the data frame
+data <- data.frame(
+  Race = rep(c("POC", "White"), each = 6),
+  Variable = rep(c("Unemployment", 
+                   "HS Completion", 
+                   "% Rural", 
+                   "Uninsured Rate", 
+                   "Dentists/Physician Supply", 
+                   "Income Inequality"), 2),
+  IRR = c(1.86, 1.45, 1.38, 0.92, 0.88, 0.85, 
+          2.15, 0.87, 1.25, 1.18, 1.12, 0.89),
+  CI_lower = c(1.32, 1.20, 1.15, 0.85, 0.82, 0.76,
+               1.70, 0.78, 1.10, 1.05, 1.03, 0.81),
+  CI_upper = c(2.62, 1.75, 1.66, 0.99, 0.95, 0.95,
+               2.72, 0.97, 1.42, 1.33, 1.22, 0.98)
+)
+
+# Reorder variables for better visualization
+data$Variable <- factor(data$Variable, 
+                        levels = rev(c("Unemployment", 
+                                      "HS Completion", 
+                                      "% Rural", 
+                                      "Uninsured Rate", 
+                                      "Dentists/Physician Supply", 
+                                      "Income Inequality")))
+
+library(ggplot2)
+library(grid)  # For unit() function
+
+ggplot(data, aes(x = IRR, y = Variable, color = Race)) +
+  geom_point(position = position_dodge(width = 0.7), size = 5) +
+  geom_errorbarh(aes(xmin = CI_lower, xmax = CI_upper), 
+                 height = 0.2, position = position_dodge(width = 0.7), 
+                 linewidth = 1) +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "gray40", linewidth = 1) +
+  scale_x_continuous(trans = "log10", breaks = c(0.5, 0.75, 1, 1.5, 2, 3),
+                     labels = c("0.5", "0.75", "1", "1.5", "2", "3")) +
+  labs(title = "Negative Binomial Regression: IRRs for Hospital Stays",
+       x = "Incidence Rate Ratio (IRR) with 95% CI",
+       y = "",
+       color = "Population Group") +  # Improved legend title
+  scale_color_manual(values = c("POC" = "#E69F00", "White" = "#56B4E9"),
+                     labels = c("POC" = "People of Color", "White" = "White Population")) +  # More descriptive labels
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5, size = 22),
+    plot.subtitle = element_text(hjust = 0.5, size = 18),
+    axis.title.x = element_text(face = "bold", size = 28),
+    axis.title.y = element_text(face = "bold", size = 28),
+    axis.text.x = element_text(size = 20),
+    axis.text.y = element_text(size = 20, margin = unit(c(0, 15, 0, 0), "pt")),
+    panel.background = element_rect(fill = "white", color = NA),
+    plot.background = element_rect(fill = "white", color = NA),
+    legend.position = "bottom",  # Changed to show legend at bottom
+    legend.title = element_text(size = 18, face = "bold"),  # Styled legend title
+    legend.text = element_text(size = 16),  # Styled legend text
+    legend.key.size = unit(1.5, "lines"),  # Increased legend key size
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    panel.grid.major.x = element_line(color = "gray90"),
+    panel.grid.minor.x = element_blank()
+  )
