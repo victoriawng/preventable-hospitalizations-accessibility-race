@@ -1,4 +1,4 @@
-#Run at start
+#RUN ALL FROM LINE 2 to 559
 library(tidyverse)
 library(naniar)
 library(janitor)
@@ -19,15 +19,11 @@ library(cowplot)
 library(rpart)
 library(rpart.plot)
 
-county_data <- read_csv("data/analytic_data2025_v2.csv") #FOR RUNNING ARTURO MODELS
+national_data <- read_csv("data/analytic_data2025_v2.csv")
 
-national_data <- read_csv("data/analytic_data2025_v2.csv") #FOR RUNNING THIS FILE
-
-#Clean names
 cn_national_data <- national_data |> 
   clean_names()
 
-#Subset variables of interest
 cn_national_data_subset <- cn_national_data |> 
   select(
     state_fips_code,
@@ -102,15 +98,12 @@ cn_national_data_subset <- cn_national_data |>
     unemployment_raw_value
   )
 
-##CLEAN DATA SET
 cn_counties_national_subset <- cn_national_data_subset |> 
   filter(str_detect(name, "County|Municipality|Census|Borough|Region|District|Parish|city"))
 
 char_cols <- c("state_abbreviation", "name")
 
-
 cols_to_convert <- setdiff(names(cn_counties_national_subset), char_cols)
-
 
 cn_counties_national_subset[cols_to_convert] <- lapply(
   cn_counties_national_subset[cols_to_convert],
@@ -121,27 +114,8 @@ cn_counties_national_subset[cols_to_convert] <- lapply(
   }
 )
 
-
-##TO VIEW MISSING VALUES (IGNORE)
-vars <- colnames(cn_counties_national_subset)
-
-var_groups <- split(vars, cut(seq_along(vars), 4, labels = FALSE))
-
-for (i in 1:4) {
-  
-  
-  data_subset <- cn_counties_national_subset[, var_groups[[i]]]
-  
-  
-  print(gg_miss_var(data_subset) + ggtitle(paste("Missingness - Group", i)))
-}
-
-
-
-#Map Stuff
 options(tigris_use_cache = TRUE)
 
-# Get shapefile for all US counties
 counties_sf <- counties(cb = TRUE, year = 2023, class = "sf")
 
 cn_counties_national_subset <- cn_counties_national_subset |> 
@@ -154,52 +128,7 @@ cn_counties_national_subset <- cn_counties_national_subset |>
 map_data <- counties_sf |> 
   left_join(cn_counties_national_subset, by = c("GEOID" = "fips"))
 
-#US County Map
-
-#Run first
-pal <- colorNumeric(
-  palette = "magma",
-  domain = map_data$preventable_hospital_stays_raw_value,
-  na.color = "gray90"
-)
-
-# Load state shapefile
-states_sf <- states(cb = TRUE, year = 2023, class = "sf")
-
-# Exclude Alaska (02) and Hawaii (15)
-map_data_contig <- map_data %>%
-  filter(!STATEFP %in% c("02", "15"))
-
-states_sf_contig <- states_sf %>%
-  filter(!STATEFP %in% c("02", "15"))
-
-#PLOT
-ggplot() +
-  geom_sf(data = map_data_contig, aes(fill = preventable_hospital_stays_raw_value), color = NA) +
-  geom_sf(data = states_sf_contig, fill = NA, color = "white", size = 0.15) +
-  scale_fill_viridis_c(option = "magma", na.value = "gray90", name = "Preventable\nHospital Stays") +
-  coord_sf(
-    crs = st_crs(2163),
-    xlim = c(-2.4e6, 2.5e6),
-    ylim = c(-2.2e6, 1.5e6),
-    expand = FALSE
-  ) +
-  theme_minimal(base_size = 12) +
-  theme(
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    panel.grid = element_blank(),
-    plot.margin = margin(0, 0, 0, 0),
-    legend.position = "right"
-  ) +
-  labs(
-    caption = "Source: County Health Rankings, 2023"
-  )
-
-
-#Race Data
-
-race_cols <- c( #RUN THIS
+race_cols <- c(
   "percent_american_indian_or_alaska_native_raw_value",
   "percent_asian_raw_value",
   "percent_hispanic_raw_value",
@@ -244,14 +173,10 @@ top_races_summary <- race_ranks |>
   ) |>
   select(state_fips_code, county_fips_code, racial_makeup)
 
-
 cn_counties_national_subset <- cn_counties_national_subset |>
   left_join(top_races_summary, by = c("state_fips_code", "county_fips_code"))
 
-
-
-
-predict_cn_subset <- cn_counties_national_subset |> # RUN
+predict_cn_subset <- cn_counties_national_subset |>
   select(state_abbreviation, name, population_raw_value, preventable_hospital_stays_raw_value,
          uninsured_raw_value, dentists_raw_value, other_primary_care_providers_raw_value,
          broadband_access_raw_value, mental_health_providers_raw_value,
@@ -266,10 +191,6 @@ predict_cn_subset <- cn_counties_national_subset |> # RUN
 
 predict_cn_subset <- predict_cn_subset |> 
   mutate(uninsured_raw_value_pct = uninsured_raw_value * 100)
-
-
-
-#RANDOM FOREST
 
 rf_subset <- predict_cn_subset |> 
   select(primary_care_physicians_raw_value,
@@ -316,11 +237,6 @@ rf_model <- randomForest(
 imp <- importance(rf_model)
 imp_df <- data.frame(Variable = rownames(imp), Importance = imp[,"%IncMSE"])
 
-ggplot(imp_df, aes(x = reorder(Variable, Importance), y = Importance)) +
-  geom_col() +
-  coord_flip() +
-  labs(title = "Variable Importance (%IncMSE)", x = "Variable", y = "%IncMSE")
-
 #Random Forest for entire subset (without race variables)
 set.seed(42)
 rfnr_model <- randomForest(
@@ -334,21 +250,7 @@ rfnr_model <- randomForest(
 imp_nr <- importance(rfnr_model)
 imp_df_nr <- data.frame(Variable = rownames(imp_nr), Importance = imp_nr[,"%IncMSE"])
 
-ggplot(imp_df_nr, aes(x = reorder(Variable, Importance), y = Importance)) +
-  geom_col() +
-  coord_flip() +
-  labs(title = "Variable Importance (%IncMSE)", x = "Variable", y = "%IncMSE")
-
-
-
-#Racial Makeup count of counties
-count_by_group <- predict_cn_subset |> 
-  count(racial_makeup, name = "n_counties") |> 
-  arrange(desc(n_counties))
-
-print(count_by_group)
-
-
+#RUN FROM LINE 274 to 461
 #SUBSET COUNTIES BY RACIAL MAKEUP
 w_counties <- predict_cn_subset |> 
   filter(racial_makeup == "non_hispanic_white")
@@ -387,10 +289,6 @@ poc_counties <- predict_cn_subset |>
     "hispanic",
     "non_hispanic_black"
   ))
-
-
-
-
 
 
 #White Majority
@@ -526,8 +424,6 @@ rf_subset_poc <- poc_counties |>
 
 rf_subset_poc <- na.omit(rf_subset_poc)
 
-#READABLE VARIABLE NAMES
-# Variable name mapping
 var_name_lookup <- c(
   "primary_care_physicians_raw_value" = "Primary Care Physicians",
   "uninsured_raw_value" = "Uninsured Rate",
@@ -554,7 +450,6 @@ rf_model_w <- randomForest(
   ntree = 500
 )
 
-
 imp_w <- importance(rf_model_w)
 imp_df_w <- data.frame(
   Variable = rownames(imp_w),
@@ -564,117 +459,7 @@ imp_df_w <- data.frame(
   arrange(desc(Importance)) |> 
   slice_head(n = 5)
 
-ggplot(imp_df_w, aes(x = reorder(Variable, Importance), y = Importance, fill = Variable)) +
-  geom_col(show.legend = FALSE) +
-  coord_flip() +
-  labs(
-    title = "Disability and High School Completion Rates among Top Predictors in White Majority Counties",
-    x = "Predictor",
-    y = "% Increase in Mean Squared Error",
-    caption = "Figure 1: Random Forest variable importance among White Majority Counties"
-  ) +
-  scale_fill_brewer(palette = "Set2") +
-  theme_minimal(base_size = 14)+
-  theme(panel.background = element_rect(fill = "white", color = NA), 
-        plot.background = element_rect(fill = "white", color = NA))
-
-#Random Forest for Hispanic Counties
-set.seed(42)
-rf_model_h <- randomForest(
-  preventable_hospital_stays_raw_value ~ .,
-  data = rf_subset_h,
-  importance = TRUE,
-  ntree = 500
-)
-
-
-imp_h <- importance(rf_model_h)
-imp_df_h <- data.frame(
-  Variable = rownames(imp_h),
-  Importance = imp_h[,"%IncMSE"]
-) |> 
-  mutate(Variable = str_replace_all(Variable, var_name_lookup)) |> 
-  arrange(desc(Importance)) |> 
-  slice_head(n = 5)
-
-ggplot(imp_df_h, aes(x = reorder(Variable, Importance), y = Importance, fill = Variable)) +
-  geom_col(show.legend = FALSE) +
-  coord_flip() +
-  labs(
-    title = "Most Important Variables (Hispanic Majority Counties)",
-    x = "Predictor",
-    y = "%IncMSE"
-  ) +
-  scale_fill_brewer(palette = "Set2") +
-  theme_minimal(base_size = 14)+
-  theme(panel.background = element_rect(fill = "white", color = NA), 
-        plot.background = element_rect(fill = "white", color = NA))
-
-#Random Forest for Black Counties
-set.seed(42)
-rf_model_b <- randomForest(
-  preventable_hospital_stays_raw_value ~ .,
-  data = rf_subset_b,
-  importance = TRUE,
-  ntree = 500
-)
-
-
-imp_b <- importance(rf_model_b)
-imp_df_b <- data.frame(
-  Variable = rownames(imp_b),
-  Importance = imp_b[,"%IncMSE"]
-) |> 
-  mutate(Variable = str_replace_all(Variable, var_name_lookup)) |> 
-  arrange(desc(Importance)) |> 
-  slice_head(n = 5)
-
-ggplot(imp_df_b, aes(x = reorder(Variable, Importance), y = Importance, fill = Variable)) +
-  geom_col(show.legend = FALSE) +
-  coord_flip() +
-  labs(
-    title = "Most Important Variables (Black Majority Counties)",
-    x = "Predictor",
-    y = "%IncMSE"
-  ) +
-  scale_fill_brewer(palette = "Set2") +
-  theme_minimal(base_size = 14)+
-  theme(panel.background = element_rect(fill = "white", color = NA), 
-        plot.background = element_rect(fill = "white", color = NA))
-
-#Random Forest for White, Hispanic Counties
-set.seed(42)
-rf_model_wh <- randomForest(
-  preventable_hospital_stays_raw_value ~ .,
-  data = rf_subset_wh,
-  importance = TRUE,
-  ntree = 500
-)
-
-
-imp_wh <- importance(rf_model_wh)
-imp_df_wh <- data.frame(
-  Variable = rownames(imp_wh),
-  Importance = imp_wh[,"%IncMSE"]
-) |> 
-  mutate(Variable = str_replace_all(Variable, var_name_lookup)) |> 
-  arrange(desc(Importance)) |> 
-  slice_head(n = 5)
-
-ggplot(imp_df_wh, aes(x = reorder(Variable, Importance), y = Importance, fill = Variable)) +
-  geom_col(show.legend = FALSE) +
-  coord_flip() +
-  labs(
-    title = "Most Important Variables (White-Hispanic Majority Counties)",
-    x = "Predictor",
-    y = "%IncMSE"
-  ) +
-  scale_fill_brewer(palette = "Set2") +
-  theme_minimal(base_size = 14)+
-  theme(panel.background = element_rect(fill = "white", color = NA), 
-        plot.background = element_rect(fill = "white", color = NA))
-
-#Random Forest for White, Black Counties
+#Random Forest for White-Black Counties
 set.seed(42)
 rf_model_wb <- randomForest(
   preventable_hospital_stays_raw_value ~ .,
@@ -693,82 +478,23 @@ imp_df_wb <- data.frame(
   arrange(desc(Importance)) |> 
   slice_head(n = 5)
 
-ggplot(imp_df_wb, aes(x = reorder(Variable, Importance), y = Importance, fill = Variable)) +
-  geom_col(show.legend = FALSE) +
-  coord_flip() +
-  labs(
-    title = "Most Important Variables (White-Black Majority Counties)",
-    x = "Predictor",
-    y = "%IncMSE"
-  ) +
-  scale_fill_brewer(palette = "Set2") +
-  theme_minimal(base_size = 14)+
-  theme(panel.background = element_rect(fill = "white", color = NA), 
-        plot.background = element_rect(fill = "white", color = NA))
-
-#Random Forest for White, AIAN Counties
+#Random Forest for White, Hispanic Counties
 set.seed(42)
-rf_model_waian <- randomForest(
+rf_model_wh <- randomForest(
   preventable_hospital_stays_raw_value ~ .,
-  data = rf_subset_waian,
+  data = rf_subset_wh,
   importance = TRUE,
   ntree = 500
 )
 
-
-imp_waian <- importance(rf_model_waian)
-imp_df_waian <- data.frame(
-  Variable = rownames(imp_waian),
-  Importance = imp_waian[,"%IncMSE"]
+imp_wh <- importance(rf_model_wh)
+imp_df_wh <- data.frame(
+  Variable = rownames(imp_wh),
+  Importance = imp_wh[,"%IncMSE"]
 ) |> 
   mutate(Variable = str_replace_all(Variable, var_name_lookup)) |> 
   arrange(desc(Importance)) |> 
   slice_head(n = 5)
-
-ggplot(imp_df_waian, aes(x = reorder(Variable, Importance), y = Importance, fill = Variable)) +
-  geom_col(show.legend = FALSE) +
-  coord_flip() +
-  labs(
-    title = "Most Important Variables (White-AIAN Majority Counties)",
-    x = "Predictor",
-    y = "%IncMSE"
-  ) +
-  scale_fill_brewer(palette = "Set2") +
-  theme_minimal(base_size = 14)+
-  theme(panel.background = element_rect(fill = "white", color = NA), 
-        plot.background = element_rect(fill = "white", color = NA))
-
-#Random Forest for Hispanic, White Counties
-set.seed(42)
-rf_model_hw <- randomForest(
-  preventable_hospital_stays_raw_value ~ .,
-  data = rf_subset_hw,
-  importance = TRUE,
-  ntree = 500
-)
-
-
-imp_hw <- importance(rf_model_hw)
-imp_df_hw <- data.frame(
-  Variable = rownames(imp_hw),
-  Importance = imp_hw[,"%IncMSE"]
-) |> 
-  mutate(Variable = str_replace_all(Variable, var_name_lookup)) |> 
-  arrange(desc(Importance)) |> 
-  slice_head(n = 5)
-
-ggplot(imp_df_hw, aes(x = reorder(Variable, Importance), y = Importance, fill = Variable)) +
-  geom_col(show.legend = FALSE) +
-  coord_flip() +
-  labs(
-    title = "Most Important Variables (Hispanic-White Majority Counties)",
-    x = "Predictor",
-    y = "%IncMSE"
-  ) +
-  scale_fill_brewer(palette = "Set2") +
-  theme_minimal(base_size = 14)+
-  theme(panel.background = element_rect(fill = "white", color = NA), 
-        plot.background = element_rect(fill = "white", color = NA))
 
 #Random Forest for Black, White Counties
 set.seed(42)
@@ -788,145 +514,23 @@ imp_df_bw <- data.frame(
   arrange(desc(Importance)) |> 
   slice_head(n = 5)
 
-ggplot(imp_df_bw, aes(x = reorder(Variable, Importance), y = Importance, fill = Variable)) +
-  geom_col(show.legend = FALSE) +
-  coord_flip() +
-  labs(
-    title = "Most Important Variables (Black-White Majority Counties)",
-    x = "Predictor",
-    y = "%IncMSE"
-  ) +
-  scale_fill_brewer(palette = "Set2") +
-  theme_minimal(base_size = 14)+
-  theme(panel.background = element_rect(fill = "white", color = NA), 
-        plot.background = element_rect(fill = "white", color = NA))
-
-#Random Forest for AIAN, White Counties
+#Random Forest for Hispanic, White Counties
 set.seed(42)
-rf_model_aianw <- randomForest(
+rf_model_hw <- randomForest(
   preventable_hospital_stays_raw_value ~ .,
-  data = rf_subset_aianw,
+  data = rf_subset_hw,
   importance = TRUE,
   ntree = 500
 )
 
-
-imp_aianw <- importance(rf_model_aianw)
-imp_df_aianw <- data.frame(
-  Variable = rownames(imp_aianw),
-  Importance = imp_aianw[,"%IncMSE"]
+imp_hw <- importance(rf_model_hw)
+imp_df_hw <- data.frame(
+  Variable = rownames(imp_hw),
+  Importance = imp_hw[,"%IncMSE"]
 ) |> 
   mutate(Variable = str_replace_all(Variable, var_name_lookup)) |> 
   arrange(desc(Importance)) |> 
   slice_head(n = 5)
-
-ggplot(imp_df_aianw, aes(x = reorder(Variable, Importance), y = Importance, fill = Variable)) +
-  geom_col(show.legend = FALSE) +
-  coord_flip() +
-  labs(
-    title = "Most Important Variables (AIAN-White Majority Counties)",
-    x = "Predictor",
-    y = "%IncMSE"
-  ) +
-  scale_fill_brewer(palette = "Set2") +
-  theme_minimal(base_size = 14)+
-  theme(panel.background = element_rect(fill = "white", color = NA), 
-        plot.background = element_rect(fill = "white", color = NA))
-
-#Random Forest for White, Asian Counties
-set.seed(42)
-rf_model_wa <- randomForest(
-  preventable_hospital_stays_raw_value ~ .,
-  data = rf_subset_wa,
-  importance = TRUE,
-  ntree = 500
-)
-
-
-imp_wa <- importance(rf_model_wa)
-imp_df_wa <- data.frame(
-  Variable = rownames(imp_wa),
-  Importance = imp_wa[,"%IncMSE"]
-) |> 
-  mutate(Variable = str_replace_all(Variable, var_name_lookup)) |> 
-  arrange(desc(Importance)) |> 
-  slice_head(n = 5)
-
-ggplot(imp_df_wa, aes(x = reorder(Variable, Importance), y = Importance, fill = Variable)) +
-  geom_col(show.legend = FALSE) +
-  coord_flip() +
-  labs(
-    title = "Most Important Variables (White-Asian Majority Counties)",
-    x = "Predictor",
-    y = "%IncMSE"
-  ) +
-  scale_fill_brewer(palette = "Set2") +
-  theme_minimal(base_size = 14)+
-  theme(panel.background = element_rect(fill = "white", color = NA), 
-        plot.background = element_rect(fill = "white", color = NA))
-
-#Random Forest for POC Counties
-set.seed(42)
-rf_model_poc <- randomForest(
-  preventable_hospital_stays_raw_value ~ .,
-  data = rf_subset_poc,
-  importance = TRUE,
-  ntree = 500
-)
-
-
-imp_poc <- importance(rf_model_poc)
-imp_df_poc <- data.frame(
-  Variable = rownames(imp_poc),
-  Importance = imp_poc[,"%IncMSE"]
-) |> 
-  mutate(Variable = str_replace_all(Variable, var_name_lookup)) |> 
-  arrange(desc(Importance)) |> 
-  slice_head(n = 5)
-
-ggplot(imp_df_poc, aes(x = reorder(Variable, Importance), y = Importance, fill = Variable)) +
-  geom_col(show.legend = FALSE) +
-  coord_flip() +
-  labs(
-    title = "Limited English Proficiency Top Predictor among POC Majority Counties",
-    x = "Predictor",
-    y = "% Increase in Mean Squared Error",
-    caption = "Figure 2: Random Forest variable importance among POC Majority Counties"
-  ) +
-  scale_fill_brewer(palette = "Set2") +
-  theme_minimal(base_size = 14)+
-  theme(panel.background = element_rect(fill = "white", color = NA), 
-        plot.background = element_rect(fill = "white", color = NA))
-
-
-#Scatterplots with regression lines
-
-predict_cn_subset <- na.omit(predict_cn_subset)
-
-ggplot(data = predict_cn_subset, 
-       aes(x = high_school_completion_raw_value, y = preventable_hospital_stays_raw_value)) +
-  geom_point(alpha = 0.6) +                                
-  geom_smooth(method = "lm", color = "red", se = TRUE) +  
-  labs(
-    x = "High School Completion Rate (%)",
-    y = "Preventable Hospital Stays per 100,000",
-    title = "High School Completion vs. Preventable Hospital Stays",
-    caption = "Each point is a county"
-  ) +
-  theme_minimal()
-
-ggplot(data = predict_cn_subset, 
-       aes(x = percent_disability_functional_limitations_raw_value, y = preventable_hospital_stays_raw_value)) +
-  geom_point(alpha = 0.6) +                                
-  geom_smooth(method = "lm", color = "red", se = TRUE) +  
-  labs(
-    x = "Disability Functional Limitations Rate (%)",
-    y = "Preventable Hospital Stays per 100,000",
-    title = "Disability Functional Limitations vs. Preventable Hospital Stays",
-    caption = "Each point is a county"
-  ) +
-  theme_minimal()
-
 
 #Stacked plots
 rf_subset_w$group <- "w"
@@ -944,8 +548,6 @@ combined_rf_subset <- rbind(
 )
 
 
-
-
 #RACIAL GROUP SUBSET
 combined_rf_subset <- combined_rf_subset |> 
   mutate(group = dplyr::recode(as.character(group),
@@ -958,7 +560,7 @@ combined_rf_subset <- combined_rf_subset |>
 
 
 #HIGHSCHOOL COMPLETION
-ggplot(
+hs_phs_races <- ggplot(
   combined_rf_subset,
   aes(
     x = high_school_completion_raw_value,
@@ -994,7 +596,7 @@ ggplot(
   )
 
 #UNINSURED
-ggplot(
+uninsured_phs_races <- ggplot(
   combined_rf_subset,
   aes(
     x = uninsured_raw_value,
@@ -1029,16 +631,12 @@ ggplot(
     plot.background = element_rect(fill = "white", color = NA)
   )
 
-
-range(combined_rf_subset$uninsured_raw_value, na.rm = TRUE)
-
-
+#BIVARIATE CHOROPLETH MAP
 set.seed(123)
 map_data <- map_data |> 
   mutate(
     high_school_completion_jit = jitter(high_school_completion_raw_value, amount = 0.01)
   )
-
 
 map_data_bi <- bi_class(
   map_data,
@@ -1047,12 +645,8 @@ map_data_bi <- bi_class(
   style = "quantile",                           
 )
 
-
-
-# Replace 'state' with the actual column name if it's different
 map_data_bi_continental <- map_data_bi |> 
   filter(!STATE_NAME %in% c("Hawaii", "Alaska"))
-
 
 bimap <- ggplot() +
   geom_sf(
@@ -1081,39 +675,88 @@ legend <- bi_legend(
 )
 
 
-ggdraw() +
-  draw_plot(bimap, 0, 0, 1, 1) +
-  draw_plot(legend, 0.75, 0.15, 0.2, 0.2) + 
-  theme(text = element_text(size = 10))
+#RF ALL COUNTIES
+rf_all_counties <- ggplot(imp_df, aes(x = reorder(Variable, Importance), y = Importance)) +
+  geom_col() +
+  coord_flip() +
+  labs(title = "Variable Importance (%IncMSE)", x = "Variable", y = "%IncMSE")
 
+#RF NO RACE VARIABLES
+rf_no_race <- ggplot(imp_df_nr, aes(x = reorder(Variable, Importance), y = Importance)) +
+  geom_col() +
+  coord_flip() +
+  labs(title = "Variable Importance (%IncMSE)", x = "Variable", y = "%IncMSE")
 
-ggsave("hs_phs_choropleth_map.png", plot = last_plot(), width = 12, height = 8, dpi = 300)
-
-imp_rfnr <- importance(rfnr_model)
-imp_df_rfnr <- data.frame(
-  Variable = rownames(imp_rfnr),
-  Importance = imp_rfnr[,"%IncMSE"]
-) |> 
-  mutate(Variable = str_replace_all(Variable, var_name_lookup)) |> 
-  arrange(desc(Importance)) |> 
-  slice_head(n = 10)
-
-ggplot(imp_df_rfnr, aes(x = reorder(Variable, Importance), y = Importance, fill = Variable)) +
+#RF WHITE COUNTIES
+white_vip_plot <- ggplot(imp_df_w, aes(x = reorder(Variable, Importance), y = Importance, fill = Variable)) +
   geom_col(show.legend = FALSE) +
   coord_flip() +
   labs(
-    title = "Most Important Variables (All Counties)",
+    title = "Disability and High School Completion Rates among Top Predictors in White Majority Counties",
     x = "Predictor",
-    y = "%IncMSE"
+    y = "% Increase in Mean Squared Error",
+    caption = "Figure 1: Random Forest variable importance among White Majority Counties"
   ) +
-  scale_fill_brewer(palette = "Spectral") +
+  scale_fill_brewer(palette = "Set2") +
   theme_minimal(base_size = 14)+
   theme(panel.background = element_rect(fill = "white", color = NA), 
         plot.background = element_rect(fill = "white", color = NA))
 
+#RF WHITE-BLACK COUNTIES
+white_black_vip_plot <- ggplot(imp_df_wb, aes(x = reorder(Variable, Importance), y = Importance, fill = Variable)) +
+  geom_col(show.legend = FALSE) +
+  coord_flip() +
+  labs(
+    title = "Most Important Variables (White-Black Majority Counties)",
+    x = "Predictor",
+    y = "%IncMSE"
+  ) +
+  scale_fill_brewer(palette = "Set2") +
+  theme_minimal(base_size = 14)+
+  theme(panel.background = element_rect(fill = "white", color = NA), 
+        plot.background = element_rect(fill = "white", color = NA))
 
+#RF WHITE-HISPANIC COUNTIES
+white_hispanic_vip_plot <- ggplot(imp_df_wh, aes(x = reorder(Variable, Importance), y = Importance, fill = Variable)) +
+  geom_col(show.legend = FALSE) +
+  coord_flip() +
+  labs(
+    title = "Most Important Variables (White-Hispanic Majority Counties)",
+    x = "Predictor",
+    y = "%IncMSE"
+  ) +
+  scale_fill_brewer(palette = "Set2") +
+  theme_minimal(base_size = 14)+
+  theme(panel.background = element_rect(fill = "white", color = NA), 
+        plot.background = element_rect(fill = "white", color = NA))
 
+#RF BLACK-WHITE COUNTIES
+black_white_vip_plot <- ggplot(imp_df_bw, aes(x = reorder(Variable, Importance), y = Importance, fill = Variable)) +
+  geom_col(show.legend = FALSE) +
+  coord_flip() +
+  labs(
+    title = "Most Important Variables (Black-White Majority Counties)",
+    x = "Predictor",
+    y = "%IncMSE"
+  ) +
+  scale_fill_brewer(palette = "Set2") +
+  theme_minimal(base_size = 14)+
+  theme(panel.background = element_rect(fill = "white", color = NA), 
+        plot.background = element_rect(fill = "white", color = NA))
 
+#RF HISPANIC-WHITE COUNTIES
+hispanic_white_vip_plot <- ggplot(imp_df_hw, aes(x = reorder(Variable, Importance), y = Importance, fill = Variable)) +
+  geom_col(show.legend = FALSE) +
+  coord_flip() +
+  labs(
+    title = "Most Important Variables (Hispanic-White Majority Counties)",
+    x = "Predictor",
+    y = "%IncMSE"
+  ) +
+  scale_fill_brewer(palette = "Set2") +
+  theme_minimal(base_size = 14)+
+  theme(panel.background = element_rect(fill = "white", color = NA), 
+        plot.background = element_rect(fill = "white", color = NA))
 
 
 
