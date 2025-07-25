@@ -20,6 +20,8 @@ execute:
 #| label: load-plots
 #| echo: false
 source("StartToFinish.R")
+source("paysonforest.R")
+source("paysonfigures.R")
 ```
 ---
 
@@ -145,7 +147,7 @@ These findings justified retaining a broad set of predictors in our race-stratif
 
 **Statistical Modeling Approach:**
 
-To quantify the relationship between healthcare access, socioeconomic conditions, and preventable hospitalizations—and how these relationships vary by race—we used two modeling strategy combining random forest models and negative binomial regression.
+To quantify the relationship between healthcare access, socioeconomic conditions, and preventable hospitalizations—and how these relationships vary by race—we used two modeling strategies.
 
 1) Random Forests for flexible, nonparametric variable importance analysis
 
@@ -168,9 +170,6 @@ Two variable importance metrics were extracted:
 - %IncMSE: Measures the increase in prediction error when a variable is permuted, reflecting its importance to model accuracy
 
 - IncNodePurity: Measures the cumulative reduction in node impurity from splits involving that variable, indicating contribution to decision-making across the forest
-```{r}
-#code here
-```
 
 **Negative Binomial Regression (Primary Inference Model)**
 
@@ -178,7 +177,7 @@ Purpose and Justification:
 
 To estimate the direction and magnitude of predictor effects while accounting for overdispersed count outcomes, we used Negative Binomial (NB) regression. Poisson models assume equal mean and variance—a condition violated in our data, as confirmed by formal overdispersion tests. The NB model relaxes this assumption, offering both statistical rigor and coefficient interpretability.
 
-Stratification Startegy: 
+Stratification SStrategy: 
 
 Separate NB models were estimated for:
 
@@ -189,21 +188,19 @@ This approach allows for direct comparisons of how predictors influence outcomes
 
 Model Specification:
 
-Let:
+($Y_i$): Preventable hospitalizations in county i
 
-($Y_i$): Preventable hospitalizations in county *i*
+($\text{Pop}_i$): Race-specific population in county i  
 
-($\text{Pop}_i$): Race-specific population in county *i*  
+( $\mathbf{X}_i$): Vector of scaled predictors for county i
 
-( $\mathbf{X}_i$): Vector of scaled predictors for county *i* 
-
-The model:
+Model:
 
 $\log(E[Y_i]) = \beta_0 + beta_1 X_{1i} + \beta_2 X_{2i} + \ldots + \log(\text{Pop}_i)$
 
 Where $log(\text{Pop}_i)$ is the **offset**, adjusting for population size so the model estimates rates rather than raw counts.
 
-**Predictors By Categoy**:
+**Predictors By Category**:
 
 Clinical Access: Primary care physician supply, dentist supply, mental health provider supply, mammography screening
 
@@ -225,36 +222,33 @@ To ensure model validity and reliability, we conducted the following checks:
 ## Results
 
 
-Our analyses revealed significant racial disparities in preventable hospitalizations (PH) and highlighted the distinct roles that healthcare access and socioeconomic factors play across racial contexts.
-
-Findings: 
-
-- Disparities Exist: As shown in our violin plots and choropleth maps (Figures 2 & 3), People of Color (POC) experience consistently higher median PH rates and wider variability than White populations. State-level maps confirmed these disparities are geographically concentrated in the South and Midwest.
-- Predictors Vary by Race: While some predictors were influential across both racial groups, their strength and direction varied. For example, rurality and mammography coverage had more consistent effects in the White model, whereas unemployment and income inequality were more prominent in POC counties.
+Our analysis revealed clear racial disparities in preventable hospitalizations (PH) and demonstrated that socioeconomic factors consistently rank among the most influential predictors—even more so than traditional clinical access measures. These results were consistent across both exploratory (Random Forest) and inferential (Negative Binomial) approaches.
 
 Variable Importance from Random Forests
 
-To identify the most influential predictors without parametric assumptions, we trained race-stratified Random Forest models. Across both groups, the top-ranked variables were:
+To identify the most influential predictors without imposing linear assumptions, we first trained race-stratified Random Forest models. Across both White and POC counties, the top-ranked variables were consistently social determinants of health, especially:
 
-```{r}
-# top 5 for each race 
+```{r, fig.width = 10, fig.height = 10}
+white_plot
+poc_plot 
 ```
-
 - High school completion
 
-- Income inequality
+- Uninsured Rate
 
-- Unemployment rate
+- Rurality
 
-These results guided our interpretation of the regression coefficients and underscored the need to address social determinants in addition to clinical access.
+These findings emphasize that social and economic context—not just healthcare access—shapes hospitalization outcomes. In particular, high school completion ranked as the top variable across both racial groups, suggesting that structural barriers to education are tightly linked to downstream health outcomes.
+
+This pattern reinforces what we observed in our EDA: POC counties face higher median PH rates and more variability than White counties (Figure 2), and these disparities are geographically concentrated in the South and Midwest (Figure 3).
 
 
 Incidence Rate Ratios from Negative Binomial Regression: 
 
-To estimate the magnitude of effects while adjusting for overdispersion and population size, we fit negative binomial (NB) regression models separately for White and POC populations. Coefficients were exponentiated to yield Incidence Rate Ratios (IRRs) with 95% confidence intervals:
+To estimate the magnitude and direction of predictor effects, we fit race-stratified Negative Binomial (NB) regression models. This approach adjusts for population size (via offsets) and accounts for overdispersion in count data. Coefficients were exponentiated to yield Incidence Rate Ratios (IRRs):
 
-```{r}
-##IRR OUTPUT
+```{r, fig.width = 10, fig.height = 10}
+biplot
 ```
 
 Interpretation: 
@@ -262,21 +256,11 @@ Interpretation:
 - An IRR > 1 suggests that an increase in the predictor is associated with higher PH rates.
 - An IRR < 1 suggests a protective effect—higher values of the predictor are associated with fewer PHs.
 
-For instance, an IRR of 1.20 for unemployment in the POC model indicates that a 1 standard deviation increase in unemployment is associated with a 20% increase in preventable hospitalizations per 10,000 residents in POC counties.
+Key Takeaways from the NB Models
 
-Model Fit and Diagnostics: 
+For White counties, clinical access factors like primary care supply and mammography screening played a more consistent role, suggesting that improving access may reduce preventable stays in these areas.
 
-- Both models exhibited acceptable residual patterns, with no extreme outliers.
-- Multicollinearity was minimal, with all predictors having Variance Inflation Factors (VIFs) < 5.
-- Overdispersion tests confirmed the appropriateness of the NB model over Poisson.
-
-Visualizing Race-Stratified Effects:
-
-We visualized model results using effect plots to illustrate how predictors influence PH rates across racial groups:
-```{r}
-#code
-```
-These plots emphasized the nonlinear influence of variables like income inequality and education—particularly in counties with majority-POC populations.
+For POC counties, the dominant drivers were economic and social—notably unemployment, education, and income inequality. A 1 standard deviation increase in unemployment was associated with a 20% increase in preventable hospitalizations (IRR = 1.20).
 
 ## Recommendations
 
@@ -341,6 +325,7 @@ Random Forests excelled at uncovering nonlinearities and interactions, allowing 
 Limitations:
 
 Despite the robustness of our modeling framework, several limitations remain:
+
 - Ecological Data: Our analysis is based on aggregated, county-level data. While this captures broad geographic trends, it cannot make individual-level inferences or account for within-county disparities.
 - Measurement Constraints: Racial proportions are derived from census estimates, and preventable hospitalizations are reported by major race categories, potentially obscuring variation within racial subgroups (e.g., Asian, Native American).
 - Data Gaps: Counties with missing data on key predictors were excluded. This may bias findings toward more well-resourced areas and underrepresent marginalized rural or tribal regions.
@@ -349,7 +334,7 @@ Practical Implications and Policy Relevance:
 
 Our study has several practical and policy-relevant takeaways:
 
-- Equity-Focused Interventions: Results support tailoring interventions by race and geography. For example, expanding primary care access may reduce hospitalizations in White-majority counties, but in POC-majority counties, addressing education and employment barriers may yield greater impact.
+- Equity-Focused Interventions: Results support tailoring interventions by race and geography. For example, expanding primary care access may reduce hospitalizations in White-majority counties, but in POC-majority counties, addressing education and employment barriers may yield a greater impact.
 - Improved Risk Adjustment: Policymakers and insurers (e.g., under the ACA) should consider including social determinants of health in risk adjustment formulas to better account for structural disadvantage.
 - Use of Ensemble Methods in Public Health Surveillance: Random Forests and similar ensemble models could enhance early detection of counties at high risk for preventable hospitalizations, especially when paired with real-time data systems.
 
@@ -377,7 +362,7 @@ Future work should deepen this analysis by:
 
 - Advocating for richer, more disaggregated race/ethnicity data collection to illuminate hidden disparities
 
-In conclusion, reducing preventable hospitalizations requires not just better healthcare—but a more equitable society.
+In conclusion, reducing preventable hospitalizations requires not just better healthcare, but a more equitable society.
 
 ## References
 
@@ -386,3 +371,16 @@ University of Wisconsin Population Health Institute. County Health Rankings & Ro
 
 ## Appendix: 
 
+Below are additional visualizations that further support our core findings: socioeconomic determinants—such as high school completion, unemployment, and income inequality—consistently emerge as the most influential predictors of preventable hospitalizations. Model diagnostics are included as well.
+```{r, fig.width = 10, fig.height = 10}
+hispanic_white_vip_plot
+black_white_vip_plot
+white_hispanic_vip_plot
+white_black_vip_plot
+white_vip_plot
+bimap
+uninsured_phs_races 
+hs_phs_races
+m3
+m4
+```

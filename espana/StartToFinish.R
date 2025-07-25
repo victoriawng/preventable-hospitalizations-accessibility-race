@@ -754,10 +754,10 @@ simulate_and_plot <- function(model, label) {
 }
 
 quartz()
-simulate_and_plot(model_white, "White")
+m1<-simulate_and_plot(model_white, "White")
 
 quartz()
-simulate_and_plot(model_poc, "POC")
+m2<-simulate_and_plot(model_poc, "POC")
 
 
 # Robust SE
@@ -802,10 +802,10 @@ check_residuals <- function(model_data, model, outcome, label) {
 }
 
 quartz()
-check_residuals(model_data_white, model_white, "preventable_hospital_stays_white", "White")
+m3<-check_residuals(model_data_white, model_white, "preventable_hospital_stays_white", "White")
 
 quartz()
-check_residuals(model_data_poc, model_poc, "preventable_hospital_stays_poc", "POC")
+m4<-check_residuals(model_data_poc, model_poc, "preventable_hospital_stays_poc", "POC")
 
 # Visualize IRRs
 combined_irrs <- bind_rows(result_white, result_poc)
@@ -1132,7 +1132,7 @@ data$Variable <- factor(data$Variable,
 library(ggplot2)
 library(grid)  # For unit() function
 
-ggplot(data, aes(x = IRR, y = Variable, color = Race)) +
+biplot <- ggplot(data, aes(x = IRR, y = Variable, color = Race)) +
   geom_point(position = position_dodge(width = 0.7), size = 5) +
   geom_errorbarh(aes(xmin = CI_lower, xmax = CI_upper), 
                  height = 0.2, position = position_dodge(width = 0.7), 

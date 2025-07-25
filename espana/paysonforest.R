@@ -1,4 +1,3 @@
-source("EDA_import.R")
 
 #Run at start
 library(tidyverse)
@@ -21,8 +20,7 @@ library(cowplot)
 library(rpart)
 library(rpart.plot)
 
-county_data <- read_csv("data/analytic_data2025_v2.csv") #FOR RUNNING ARTURO MODELS
-national_data <- read_csv("data/analytic_data2025_v2.csv") #FOR RUNNING THIS FILE
+national_data <- read_csv("analytic_data2025_v2.csv")
 
 #Clean names
 cn_national_data <- national_data |> 
@@ -30,7 +28,7 @@ cn_national_data <- national_data |>
 
 #Subset variables of interest
 cn_national_data_subset <- cn_national_data |> 
-  select(
+  dplyr::select(
     state_fips_code,
     state_abbreviation,
     name,
@@ -230,13 +228,13 @@ top_races_summary <- race_ranks |>
       TRUE ~ "no clear racial majority"
     )
   ) |>
-  select(state_fips_code, county_fips_code, racial_makeup)
+  dplyr::select(state_fips_code, county_fips_code, racial_makeup)
 
 cn_counties_national_subset <- cn_counties_national_subset |>
   left_join(top_races_summary, by = c("state_fips_code", "county_fips_code"))
 
 predict_cn_subset <- cn_counties_national_subset |> 
-  select(
+  dplyr::select(
     state_abbreviation, name, population_raw_value, preventable_hospital_stays_raw_value,
     uninsured_raw_value, dentists_raw_value, other_primary_care_providers_raw_value,
     broadband_access_raw_value, mental_health_providers_raw_value,
@@ -255,7 +253,7 @@ predict_cn_subset <- cn_counties_national_subset |>
 
 # Create model-ready subset
 rf_subset <- predict_cn_subset |> 
-  select(
+  dplyr::select(
     preventable_hospital_stays_raw_value,
     primary_care_physicians_raw_value,
     uninsured_raw_value,
@@ -342,7 +340,7 @@ poc_counties <- predict_cn_subset |>
 
 # Create model-ready subsets
 rf_white <- white_counties |> 
-  select(
+  dplyr::select(
     preventable_hospital_stays_raw_value,
     primary_care_physicians_raw_value,
     uninsured_raw_value,
@@ -360,7 +358,7 @@ rf_white <- white_counties |>
   na.omit()
 
 rf_poc <- poc_counties |> 
-  select(
+  dplyr::select(
     preventable_hospital_stays_raw_value,
     primary_care_physicians_raw_value,
     uninsured_raw_value,
